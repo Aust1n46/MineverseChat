@@ -1,0 +1,4 @@
+MineverseChat
+=============
+
+MineverseChat plugin
