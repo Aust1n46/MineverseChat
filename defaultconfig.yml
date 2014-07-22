@@ -1,0 +1,334 @@
+#===============================================================
+#                     MineverseChat Config                     =
+#                      Author: Aust1n46                        =                     
+#===============================================================
+
+# - regex1,regex2
+filters:
+- ahole,donuts
+- glass,glass
+- anus,donuts
+- ash0le,donuts
+- ash0les,donuts
+- asholes,donuts
+- ass,donuts
+- ass,donuts
+- Ass Monkey,donuts
+- Assface,donuts
+- assh0le,donuts
+- assh0lez,donuts
+- asshole,donuts
+- assholes,donuts
+- assholz,donuts
+- asswipe,donuts
+- azzhole,donuts
+- Biatch,puppy
+- bitch,puppy
+- bitches,puppy
+- c0ck,rooster
+- c0cks,rooster
+- c0k,rooster
+- Carpet Muncher,rooster
+- cawk,rooster
+- cawks,rooster
+- Clit,peach
+- cnts,peach
+- cntz,peach
+- cock,rooster
+- cockhead,rooster
+- cock-head,rooster
+- cocks,rooster
+- CockSucker,rooster
+- cock-sucker,rooster
+- crap,poo
+- cum,bake brownies
+- cunt,peach
+- cunts,peaches
+- cuntz,peaches
+- dick,rooster
+- dild0,rooster
+- dild0s,rooster
+- dildo,rooster
+- dildos,rooster
+- dilld0,rooster
+- dilld0s,rooster
+- f u c k,nono
+- f u c k e r,nono
+- fag,cigarette
+- fag1t,cigarette
+- faget,cigarette
+- fagg1t,cigarette
+- faggit,cigarette
+- faggot,cigarette
+- fagit,cigarette
+- fags,cigarettes
+- fagz,cigarette
+- faig,cigarette
+- faigs,cigarette
+- fuck,oh dear
+- fucker,oh dear
+- fuckin,oh dear
+- fucking,oh dear
+- fucks,oh dear
+- Fudge Packer,oh dear
+- fuk,oh dear
+- Fukah,oh dear
+- Fuken,oh dear
+- fuker,oh dear
+- Fukin,oh dear
+- Fukk,oh dear
+- Fukkah,oh dear
+- Fukken,oh dear
+- Fukker,oh dear
+- Fukkin,oh dear
+- jackoff,bake brownies
+- jisim,bake brownies
+- jiss,bake brownies
+- jizm,bake brownies
+- jizz,bake brownies
+- kunt,peach
+- kunts,peach
+- kuntz,peach
+- massterbait,bake brownies
+- masstrbait,bake brownies
+- masstrbate,bake brownies
+- masterbaiter,bake brownies
+- masterbate,bake brownies
+- masterbates,bake brownies
+- orafis,rooster
+- peeenus,rooster
+- peeenusss,rooster
+- peenus,rooster
+- peinus,rooster
+- pen1s,rooster
+- penas,rooster
+- penis,rooster
+- penus,rooster
+- penuus,rooster
+- Phuc,oh dear
+- Phuck,oh dear
+- Phuk,oh dear
+- Phuker,oh dear
+- Phukker,oh dear
+- Sh!t,dumb
+- sh1t,dumb
+- sh1ter,dumb
+- sh1ts,dumb
+- sh1tter,dumb
+- sh1tz,dumb
+- shit,dumb
+- shits,dumb
+- shitter,dumb
+- Shitty,dumb
+- Shity,dumb
+- shitz,dumb
+- Shyt,dumb
+- Shyte,dumb
+- Shytty,dumb
+- Shyty,dumb
+- va1jina,peach
+- vag1na,peach
+- vagiina,peach
+- vagina,peach
+- vaj1na,peach
+- vajina,peach
+- vullva,peach
+- vulva,peach
+- \blag,awesome
+- planet minecraft,another dimension
+- planetminecraft,another dimension
+
+# command without the /
+blockablecommands:
+- vote
+- me
+
+commandspy:
+  worldeditcommands: true
+  
+antispam:
+  enabled: true
+  # number of messages to be spam
+  spamnumber: 5
+  # amount of time in seconds for it to be spam
+  spamtime: 5
+
+pluginname: MineverseChat
+loglevel: info
+saveplayerdata: true
+# saveinterval is in minutes
+saveinterval: 5
+tellcolor: white
+
+# {playerto} : player receivings name
+# {playerfrom} : player sendings name
+tellformatto: Default
+tellformatfrom: Default
+tellformatspy: Default
+replyformatto: Default
+replyformatfrom: Default
+replyformatspy: Default
+
+# {host} : party hosts name
+# {player} : player name
+partyformat: Default
+broadcastafk: false
+formatcleaner: true
+
+# broadcast information
+broadcast:
+  color: red
+  permissions: mineversechat.adminchannel
+  displaytag: [Broadcast]
+  
+# color = [channel] color
+# chatcolor = text color
+# cooldown is in seconds
+# bungeecord overrides distance
+# channel permissions are configurable
+# channels can be changed, and new channels can be created
+# format tags:
+# {jobs} : jobs title and color
+# {town} : towny town name
+# {pretown} : town formatted with the towny town colors
+# {nation} : towny nation name
+# {prenation} : nation formatted with the towny nation colors
+# {townytitle} : towny player title
+# {name} : player name
+# {prefix} : player prefix and color
+# {suffix} : player suffix and color
+# {faction} : factions name
+# {factionstitle} : factions player title and color
+# {servername} : name of the server in server.properties
+# use Default for the basic formatting
+channels:
+  Global:
+    color: dark_green
+    chatcolor: dark_green
+    mutable: true
+    filter: true
+    autojoin: false
+    default: false
+    distance: 0
+    cooldown: 0
+    bungeecord: false
+    alias: g
+    permissions: None
+    format: Default
+  Staff:
+    color: green
+    chatcolor: green
+    mutable: false
+    filter: false
+    autojoin: false
+    default: false
+    distance: 0
+    cooldown: 0
+    bungeecord: false
+    alias: st
+    permissions: mineversechat.staffchannel
+    format: Default
+  Admin:
+    color: red
+    chatcolor: red
+    mutable: false
+    filter: false
+    autojoin: false
+    default: false
+    distance: 0
+    cooldown: 0
+    bungeecord: false
+    alias: a
+    permissions: mineversechat.adminchannel
+    format: Default
+  Donator:
+    color: light_purple
+    chatcolor: light_purple
+    mutable: true
+    filter: true
+    autojoin: false
+    default: false
+    distance: 0
+    cooldown: 0
+    bungeecord: false
+    alias: d
+    permissions: mineversechat.donatorchannel
+    format: Default
+  Help:
+    color: aqua
+    chatcolor: aqua
+    mutable: true
+    filter: true
+    autojoin: false
+    default: false
+    distance: 0
+    cooldown: 0
+    bungeecord: false
+    alias: h
+    permissions: None
+    format: Default
+  Trade:
+    color: dark_aqua
+    chatcolor: dark_aqua
+    mutable: true
+    filter: true
+    autojoin: false
+    default: false
+    distance: 0
+    cooldown: 0
+    bungeecord: false
+    alias: t
+    permissions: None
+    format: Default
+  Troll:
+    color: gray
+    chatcolor: gray
+    mutable: true
+    filter: true
+    autojoin: false
+    default: false
+    distance: 0
+    cooldown: 0
+    bungeecord: false
+    alias: tr
+    permissions: None
+    format: Default
+  Local:
+    color: yellow
+    chatcolor: yellow
+    mutable: true
+    filter: true
+    autojoin: true
+    default: false
+    distance: 230
+    cooldown: 0
+    bungeecord: false
+    alias: l
+    permissions: None
+    format: Default
+  Noob:
+    color: white
+    chatcolor: white
+    mutable: true
+    filter: true
+    autojoin: true
+    default: true
+    distance: 0
+    cooldown: 0
+    bungeecord: false
+    alias: n
+    permissions: None
+    format: Default
+  Serverwide:
+    color: gold
+    chatcolor: gold
+    mutable: true
+    filter: true
+    autojoin: false
+    default: false
+    distance: 0
+    cooldown: 60
+    bungeecord: true
+    alias: sw
+    permissions: None
+    format: Default
