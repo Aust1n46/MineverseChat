@@ -1,0 +1,178 @@
+package mineverse.Aust1n46.chat.command;
+
+import java.util.logging.Logger;
+import mineverse.Aust1n46.chat.ChatChannel;
+import mineverse.Aust1n46.chat.ChatChannelInfo;
+import mineverse.Aust1n46.chat.MineverseChat;
+import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.metadata.FixedMetadataValue;
+
+public class MuteCommandExecutor implements CommandExecutor {
+	private MineverseChat plugin;
+	@SuppressWarnings("unused")
+	private String name;
+	private ChatChannelInfo cc;
+	private static final Logger log = Logger.getLogger("Minecraft");
+	
+	public MuteCommandExecutor(MineverseChat _plugin, ChatChannelInfo _cc) {
+		plugin = _plugin;
+		name= plugin.getName();
+		cc = _cc;
+	}
+ 
+	@Override
+    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+    	String comm = cmd.getName().toLowerCase();
+    	if(!(sender instanceof Player)) {
+    		log.info(String.format("[" + String.format(plugin.getConfig().getString("pluginname", "MineverseChat") + "]" + " - This command must be run by a player!", plugin.getDescription().getName())));
+    		return true;
+    	}
+        Player player = (Player) sender;
+        
+        if(args == null) {
+            return false;
+        }
+        
+        switch(comm) {
+        	case "mute": {
+        		if(player.isPermissionSet("mineversechat.mute")) {
+					if(args.length < 2) {
+						player.sendMessage(ChatColor.RED+"Invalid command: /mute [player] [channel]");
+						return true;
+					}
+					Player tp = null;
+					tp = sender.getServer().getPlayerExact(args[0]);
+					if(tp == null) {
+						 if(player!=null) {
+							 player.sendMessage(ChatColor.RED+"Player: " + ChatColor.GOLD + args[0] + ChatColor.RED + " is not online.");	 
+						 }
+						 return true;
+					}			 
+					for(ChatChannel c:cc.getChannelsInfo()) {
+						if(c.getName().equalsIgnoreCase(args[1])|| c.getAlias().equalsIgnoreCase(args[1])) {
+							if(plugin.getMetadata(tp, "MineverseMute." + c.getName(), plugin)) {
+								player.sendMessage(ChatColor.GOLD + args[0] + ChatColor.RED + " is already muted in channel: " + ChatColor.valueOf(c.getColor().toUpperCase()) + c.getName());
+								return true;
+							}
+							if(c.isMutable()) {								
+								tp.setMetadata("MineverseMute."+c.getName(),new FixedMetadataValue(plugin,true));
+								player.sendMessage(ChatColor.RED + "Muted player " + ChatColor.GOLD + args[0] + ChatColor.RED + " in: " +  ChatColor.valueOf(c.getColor().toUpperCase())  + c.getName());
+								tp.sendMessage(ChatColor.RED+"You have just been muted in: " +  ChatColor.valueOf(c.getColor().toUpperCase()) + c.getName());
+							}
+							else {
+								player.sendMessage(ChatColor.RED + "You cannot mute players in this channel: " + ChatColor.valueOf(c.getColor().toUpperCase())+ c.getName());
+							}						 
+							return true;
+						}						 							 
+					}
+					if(player!=null) {
+						player.sendMessage(ChatColor.RED+"Invalid channel: "+ args[1]);
+					}
+					return true;
+        		}
+        		else {
+        			player.sendMessage(ChatColor.RED+"You do not have permission for this command.");
+        			return true;
+        		}
+        	}
+        	
+        	case "unmute": {
+        		if(player.isPermissionSet("mineversechat.mute")) {      						
+    				if(args.length < 2) {
+    					player.sendMessage(ChatColor.RED+"Invalid command: /unmute [player] [channel]");
+    					return true;
+    				}
+    				Player tp = null;
+    				tp = sender.getServer().getPlayerExact(args[0]);
+    				if(tp == null) {
+    					if(player!=null) {
+    						player.sendMessage(ChatColor.RED+"Player: " + ChatColor.GOLD + args[0] + ChatColor.RED + " is not online.");	 
+    					}
+    					return true;
+    				}	 
+    				for(ChatChannel c:cc.getChannelsInfo()) {
+    					if(c.getName().equalsIgnoreCase(args[1])|| c.getAlias().equalsIgnoreCase(args[1])) { 
+    						if(plugin.getMetadata(tp, "MineverseMute." + c.getName(), plugin) == false) {
+    							player.sendMessage(ChatColor.GOLD + args[0] + ChatColor.RED + " is not muted in channel: " + ChatColor.valueOf(c.getColor().toUpperCase()) + c.getName());
+    							return true;
+    						}   						
+    						tp.setMetadata("MineverseMute."+c.getName(),new FixedMetadataValue(plugin,false));
+    						player.sendMessage(ChatColor.RED+"Unmuted player " + ChatColor.GOLD + args[0] + ChatColor.RED + " in: "+  ChatColor.valueOf(c.getColor().toUpperCase())  +c.getName());
+    						tp.sendMessage(ChatColor.RED+"You have just been unmuted in: " +  ChatColor.valueOf(c.getColor().toUpperCase())  + c.getName());
+    						return true;
+    					}
+    				}
+    				if(player!=null) {
+    					player.sendMessage(ChatColor.RED+"Invalid channel: "+ args[1]);    					 
+    				}
+    				return true;
+    			}
+    			else {
+    				player.sendMessage(ChatColor.RED+"You do not have permission for this command.");
+    				return true;
+    			}								 			
+        	}
+        	
+        	case "muteall": {
+        		if(player.isPermissionSet("mineversechat.mute")) {	   				
+        			if(args.length < 1) {
+        				player.sendMessage(ChatColor.RED + "Invalid command: /muteall [player]");
+    					return true;
+    				}
+        			Player tp = null;
+    				tp = sender.getServer().getPlayerExact(args[0]);
+    				if(tp == null) {
+    					if(player!=null) {
+    						player.sendMessage(ChatColor.RED+"Player: " + ChatColor.GOLD + args[0] + ChatColor.RED + " is not online.");	 
+    					}
+    					return true;
+    				}		 
+    				for(ChatChannel c:cc.getChannelsInfo()) {					 					 
+    					if(c.isMutable()) {   						
+    						tp.setMetadata("MineverseMute." + c.getName(),new FixedMetadataValue(plugin,true));								
+    					}	 
+    				}
+    				player.sendMessage(ChatColor.RED + "Muted player " + ChatColor.GOLD + args[0] + ChatColor.RED + " in all channels.");
+    				tp.sendMessage(ChatColor.RED + "You have just been muted in all channels.");
+    				return true;
+    			}
+    			else {
+    				player.sendMessage(ChatColor.RED + "You do not have permission for this command.");
+    				return true;
+    			}
+        	}
+        	
+        	case "unmuteall": {
+        		if(player.isPermissionSet("mineversechat.mute")) {		
+        			if(args.length < 1) {
+        				player.sendMessage(ChatColor.RED+"Invalid command: /unmuteall [player]");
+    					return true;
+    				}
+    				Player tp = null;
+    				tp = sender.getServer().getPlayerExact(args[0]);
+    				if(tp == null) {
+    					if(player!=null) {
+    						player.sendMessage(ChatColor.RED+"Player: " + ChatColor.GOLD + args[0] + ChatColor.RED + " is not online.");	 
+    					}
+    					return true;    					 
+    				}
+    				for(ChatChannel c:cc.getChannelsInfo()) {					 					  						    					
+    					tp.setMetadata("MineverseMute." + c.getName(),new FixedMetadataValue(plugin,false));								  	 
+    				}
+    				player.sendMessage(ChatColor.RED + "Unmuted player " + ChatColor.GOLD + args[0] + ChatColor.RED + " in all channels.");
+    				tp.sendMessage(ChatColor.RED + "You have just been unmuted in all channels.");
+    				return true;
+    			}
+    			else {
+    				player.sendMessage(ChatColor.RED + "You do not have permission for this command.");
+    				return true;
+    			}
+        	}
+        }
+		return false; 
+	}
+}
