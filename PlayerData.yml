@@ -1,0 +1,6 @@
+players:
+  Austin:
+    default: global
+    listen: global
+    mute:
+    date: 5/27/1998
