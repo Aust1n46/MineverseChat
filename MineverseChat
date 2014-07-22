@@ -1,0 +1,285 @@
+package mineverse.Aust1n46.chat;
+
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.File;
+import java.lang.reflect.Field;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import net.milkbowl.vault.chat.Chat;
+import net.milkbowl.vault.permission.Permission;
+import mineverse.Aust1n46.chat.listeners.LoginListener;
+import mineverse.Aust1n46.chat.listeners.ChatListener;
+import mineverse.Aust1n46.chat.permissions.MineversePermissions;
+import mineverse.Aust1n46.chat.command.ChatCommandExecutor;
+import mineverse.Aust1n46.chat.command.ConfigCommandExecutor;
+import mineverse.Aust1n46.chat.command.MuteCommandExecutor;
+import mineverse.Aust1n46.chat.command.PartyCommandExecutor;
+import mineverse.Aust1n46.chat.command.TellCommandExecutor;
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandMap;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.craftbukkit.v1_7_R3.CraftServer;
+import org.bukkit.entity.Player;
+import org.bukkit.metadata.MetadataValue;
+import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.messaging.PluginMessageListener;
+import org.bukkit.scheduler.BukkitScheduler;
+
+public class MineverseChat extends JavaPlugin implements PluginMessageListener {
+    //Listeners --------------------------------
+    public ChatListener chatListener;
+    public LoginListener loginListener;
+    public static String[] playerlist;
+    public static String playerlist_server;
+    
+    //Executors --------------------------------
+    private ChatCommandExecutor chatExecutor;
+    private MuteCommandExecutor muteExecutor;
+    private TellCommandExecutor tellExecutor;
+    private PartyCommandExecutor partyExecutor;
+    private ConfigCommandExecutor configExecutor;
+    
+    //Misc --------------------------------
+    private ChatChannelInfo ccInfo;
+    FileConfiguration fc;
+    File cfile;
+    MineversePermissions mp;
+    private static final Logger log = Logger.getLogger("Minecraft");
+    
+    //Vault --------------------------------
+    public static Permission permission = null;
+    public static Chat chat = null;
+    private static CommandMap cmap;
+    
+    public enum LOG_LEVELS {
+        DEBUG, INFO, WARNING, ERROR
+    }
+    
+    private LOG_LEVELS curLogLevel;
+    
+    public long LINELENGTH = 40;
+    
+    @Override
+    public void onEnable() {   	
+    	log.info(String.format("[" + String.format(getConfig().getString("pluginname", "MineverseChat") + "]" + " - Initializing...", getDescription().getName())));
+        log.info(String.format("[" + String.format(getConfig().getString("pluginname", "MineverseChat") + "]" + " - Checking for Vault...", getDescription().getName())));   
+        //Set up Vault
+        if(!setupPermissions()) {
+            log.info(String.format("[" + String.format(getConfig().getString("pluginname", "MineverseChat") + "]" + " - Could not find Vault dependency, disabling.", getDescription().getName())));
+        }
+        setupChat();
+        //Log completion of initialization
+        log.info(String.format("[" + String.format(getConfig().getString("pluginname", "MineverseChat") + "]" + " - Enabled Successfully", getDescription().getName(), getDescription().getVersion())));   
+        //Get config and handle       
+        //Configuration 
+     	try {			    		
+     		fc= getConfig(); 
+     		if(Bukkit.getServer() instanceof CraftServer) {
+                final Field f = CraftServer.class.getDeclaredField("commandMap");
+                f.setAccessible(true);
+                cmap = (CommandMap)f.get(Bukkit.getServer());
+            }
+     		if(!fc.isSet("channels")) {
+     			getConfig().options().copyDefaults(true);
+     			saveDefaultConfig();
+     			reloadConfig();
+     		}   
+     		if(!new File(getDataFolder(), "defaultconfig.yml").exists()) {
+                saveResource("defaultconfig.yml", false);
+            }
+     	} 
+     	catch(Exception ex) {
+     		log.severe(String.format("[" + String.format(getConfig().getString("pluginname", "MineverseChat") + "]" + " - Could not load configuration!\n " + ex, getDescription().getName())));
+     	}
+        log.info(String.format("[" + String.format(getConfig().getString("pluginname", "MineverseChat") + "]" + " - Registering Listeners", getDescription().getName())));
+        //Channel information reference
+        ccInfo = new ChatChannelInfo(this);
+        if(ccInfo == null) {
+        	log.info(String.format("[" + String.format(getConfig().getString("pluginname", "MineverseChat") + "]" + " - Configuration is BAD!", getDescription().getName())));      
+        }  
+        chatListener = new ChatListener(this, ccInfo);
+        PluginManager pluginManager = getServer().getPluginManager();
+        pluginManager.registerEvents(chatListener, this);
+        loginListener = new LoginListener(this, ccInfo);
+        pluginManager.registerEvents(loginListener, this);
+        chatExecutor = new ChatCommandExecutor(this, ccInfo);
+        pluginManager.registerEvents(chatExecutor, this); 
+        log.info(String.format("[" + String.format(getConfig().getString("pluginname", "MineverseChat") + "]" + " - Attaching to Executors", getDescription().getName())));           
+        muteExecutor = new MuteCommandExecutor(this, ccInfo);
+        tellExecutor = new TellCommandExecutor(this, ccInfo);
+        partyExecutor = new PartyCommandExecutor(this, ccInfo);
+        configExecutor = new ConfigCommandExecutor(this, ccInfo);
+        getCommand("tell").setExecutor(tellExecutor);
+        getCommand("ignore").setExecutor(tellExecutor);
+        getCommand("whisper").setExecutor(tellExecutor);
+        getCommand("message").setExecutor(tellExecutor);
+        getCommand("afk").setExecutor(tellExecutor);
+        getCommand("reply").setExecutor(tellExecutor);
+        getCommand("spy").setExecutor(tellExecutor);
+        getCommand("channel").setExecutor(chatExecutor);
+        getCommand("leave").setExecutor(chatExecutor);
+        getCommand("join").setExecutor(chatExecutor);
+        getCommand("chlist").setExecutor(chatExecutor);
+        getCommand("chwho").setExecutor(chatExecutor);
+        getCommand("setchannel").setExecutor(chatExecutor);
+        getCommand("kickchannel").setExecutor(chatExecutor);
+        getCommand("mute").setExecutor(muteExecutor);
+        getCommand("unmute").setExecutor(muteExecutor);
+        getCommand("muteall").setExecutor(muteExecutor);
+        getCommand("unmuteall").setExecutor(muteExecutor);
+        getCommand("kickchannelall").setExecutor(chatExecutor);
+        getCommand("setchannelall").setExecutor(chatExecutor);
+        getCommand("force").setExecutor(chatExecutor);
+        getCommand("forceall").setExecutor(chatExecutor);
+        getCommand("listen").setExecutor(chatExecutor);
+        getCommand("chatreload").setExecutor(chatExecutor);
+        getCommand("commandspy").setExecutor(chatExecutor);
+        getCommand("chatinfo").setExecutor(chatExecutor);
+        getCommand("channelinfo").setExecutor(chatExecutor);
+        getCommand("mineversechat").setExecutor(chatExecutor);
+        getCommand("me").setExecutor(chatExecutor);
+        getCommand("filter").setExecutor(chatExecutor);
+        getCommand("broadcast").setExecutor(chatExecutor);      
+        getCommand("commandblock").setExecutor(chatExecutor);   
+        getCommand("party").setExecutor(partyExecutor);
+        getCommand("edit").setExecutor(configExecutor);
+        for(ChatChannel c : ccInfo.getChannelsInfo()) {
+        	CCommand cmd = new CCommand(c.getAlias());
+            cmap.register("", cmd);
+            cmd.setExecutor(chatExecutor);
+        }   
+        log.info(String.format("[" + String.format(getConfig().getString("pluginname", "MineverseChat") + "]" + " - Establishing BungeeCord", getDescription().getName())));
+        Bukkit.getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+        Bukkit.getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
+        if(pluginManager.isPluginEnabled("Towny")) {
+        	log.info(String.format("[" + String.format(getConfig().getString("pluginname", "MineverseChat") + "]" + " - Enabling Towny Formatting", getDescription().getName())));
+        }
+        if(pluginManager.isPluginEnabled("Jobs")) {
+       	    log.info(String.format("[" + String.format(getConfig().getString("pluginname", "MineverseChat") + "]" + " - Enabling Jobs Formatting", getDescription().getName())));
+        }
+        if(pluginManager.isPluginEnabled("Factions")) {
+       	    log.info(String.format("[" + String.format(getConfig().getString("pluginname", "MineverseChat") + "]" + " - Enabling Factions Formatting", getDescription().getName())));
+        }
+        BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
+	    scheduler.scheduleSyncRepeatingTask(this, new Runnable() {
+			@Override
+			public void run() {
+				loginListener.SaveItToDisk();
+				log.info(String.format("[" + String.format(getConfig().getString("pluginname", "MineverseChat") + "]" + " - Saving Player Data", getDescription().getName())));
+			}
+	    }, 0L, getConfig().getInt("saveinterval")*1200);
+    }  
+    
+    public CommandMap getCommandMap(){
+        return cmap;
+    }
+    
+    private boolean setupPermissions() {
+        RegisteredServiceProvider<Permission> permissionProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.permission.Permission.class);
+        if(permissionProvider != null) {
+            permission = permissionProvider.getProvider();
+        }
+        return(permission != null);
+    }
+    
+    private boolean setupChat() {
+        RegisteredServiceProvider<Chat> chatProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.chat.Chat.class);
+        if(chatProvider != null) {
+            chat = chatProvider.getProvider();
+        }
+        return(chat != null);
+    }
+    
+    public long getLineLength() {
+        return LINELENGTH;
+    }
+    
+    @Override
+    public void onDisable() {
+        loginListener.SaveItToDisk();
+        log.info(String.format("[" + String.format(getConfig().getString("pluginname", "MineverseChat") + "]" + " - Disabling...", getDescription().getName())));
+        log.info(String.format("[" + String.format(getConfig().getString("pluginname", "MineverseChat") + "]" + " - Disabled Successfully", getDescription().getName())));
+    }
+    
+    //Utiliy metadata functions... 
+    public String getMetadataString(Player player, String key, MineverseChat plugin) {
+        List<MetadataValue> values = player.getMetadata(key);
+        for (MetadataValue value : values) {
+            if (value.getOwningPlugin().getDescription().getName().equals(plugin.getDescription().getName())) {
+                return value.asString();
+            }
+        }
+        return "";
+    }
+    
+    public boolean getMetadata(Player player, String key, MineverseChat plugin) {
+        List<MetadataValue> values = player.getMetadata(key);
+        for (MetadataValue value : values) {
+            if(value.getOwningPlugin().getDescription().getName().equals(plugin.getDescription().getName())) {
+                return value.asBoolean();
+            }
+        }
+        return false;
+    }
+    
+    public void setLogLevel(String loglevel) {
+        if(LOG_LEVELS.valueOf(loglevel) != null) {
+            curLogLevel = LOG_LEVELS.valueOf(loglevel);
+        } 
+        else {
+            curLogLevel = LOG_LEVELS.INFO;
+        }
+    }
+    
+    public void logme(LOG_LEVELS level, String location, String logline) {
+        if(level.ordinal() >= curLogLevel.ordinal()) {
+            log.log(Level.INFO, "[" + getConfig().getString("pluginname", "MineverseChat") + "]: {0}:{1} : {2}", new Object[]{level.toString(), location, logline});
+        }
+    }
+
+    @Override
+    public void onPluginMessageReceived(String channel, Player player, byte[] message) {
+    	if(!channel.equals("BungeeCord")) {
+            return;
+        }
+    	DataInputStream in = new DataInputStream(new ByteArrayInputStream(message));
+        try {
+            String subchannel = in.readUTF();
+            /*if(subchannel.equals("Message")) {
+            	short len = in.readShort();
+            	byte[] msgbytes = new byte[len];
+            	in.readFully(msgbytes);
+            	DataInputStream msgin = new DataInputStream(new ByteArrayInputStream(msgbytes));
+            	String[] chat = msgin.readUTF().split("\n");
+            	for(Player p:Bukkit.getOnlinePlayers()) {
+            		if(p.hasMetadata("listenchannel."+chat[1])) {
+            			if(this.getMetadata(p,"listenchannel."+chat[1],this)) {
+            				p.sendMessage(chat[0]);
+            			}
+            		}
+            	}
+            }*/          
+            if(subchannel.equals("Chat")) {
+            	short len = in.readShort();
+            	byte[] msgbytes = new byte[len];
+            	in.readFully(msgbytes);
+            	DataInputStream msgin = new DataInputStream(new ByteArrayInputStream(msgbytes));
+            	String[] chat = msgin.readUTF().split("\n");
+            	for(Player p:Bukkit.getOnlinePlayers()) {
+            		if(p.hasMetadata("listenchannel."+chat[1])) {
+            			if(this.getMetadata(p,"listenchannel."+chat[1],this)) {
+            				p.sendMessage(chat[0]);
+            			}
+            		}
+            	}
+            }
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
