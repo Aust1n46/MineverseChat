@@ -1,5 +1,5 @@
 name: MineverseChat
-version: 1.5.2
+version: 1.5.3
 main: mineverse.Aust1n46.chat.MineverseChat
 depend: [Vault]
 softdepend: [Jobs, Towny, Factions, VanishNoPacket]
