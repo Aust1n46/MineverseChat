@@ -1,4 +1,4 @@
-#===============================================================
+##===============================================================
 #                     MineverseChat Config                     =
 #                      Author: Aust1n46                        =                     
 #===============================================================
@@ -197,6 +197,9 @@ broadcast:
 # {name} : player name
 # {prefix} : player prefix and color
 # {suffix} : player suffix and color
+# {group} : player group name
+# {groupprefix} : player group prefix
+# {groupsuffix} : player group suffix
 # {faction} : factions name
 # {factionstitle} : factions player title and color
 # {servername} : name of the server in server.properties
