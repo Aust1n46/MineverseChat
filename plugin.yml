@@ -2,7 +2,7 @@ name: MineverseChat
 version: 1.5.2
 main: mineverse.Aust1n46.chat.MineverseChat
 depend: [Vault]
-softdepend: [Jobs, Towny, Factions]
+softdepend: [Jobs, Towny, Factions, VanishNoPacket]
 Author: Aust1n46
 description: Chat with channels with many features!
 commands:
