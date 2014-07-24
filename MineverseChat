@@ -3,7 +3,6 @@ package mineverse.Aust1n46.chat;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.File;
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -17,10 +16,12 @@ import mineverse.Aust1n46.chat.command.ConfigCommandExecutor;
 import mineverse.Aust1n46.chat.command.MuteCommandExecutor;
 import mineverse.Aust1n46.chat.command.PartyCommandExecutor;
 import mineverse.Aust1n46.chat.command.TellCommandExecutor;
+import mineverse.Aust1n46.chat.VersionHandler;
+import mineverse.Aust1n46.chat.versions.V1_7_10;
+import mineverse.Aust1n46.chat.versions.V1_7_9;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.craftbukkit.v1_7_R3.CraftServer;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.PluginManager;
@@ -53,7 +54,7 @@ public class MineverseChat extends JavaPlugin implements PluginMessageListener {
     //Vault --------------------------------
     public static Permission permission = null;
     public static Chat chat = null;
-    private static CommandMap cmap;
+    public static CommandMap cmap;
     
     public enum LOG_LEVELS {
         DEBUG, INFO, WARNING, ERROR
@@ -77,12 +78,7 @@ public class MineverseChat extends JavaPlugin implements PluginMessageListener {
         //Get config and handle       
         //Configuration 
      	try {			    		
-     		fc= getConfig(); 
-     		if(Bukkit.getServer() instanceof CraftServer) {
-                final Field f = CraftServer.class.getDeclaredField("commandMap");
-                f.setAccessible(true);
-                cmap = (CommandMap)f.get(Bukkit.getServer());
-            }
+     		fc= getConfig();      		
      		if(!fc.isSet("channels")) {
      			getConfig().options().copyDefaults(true);
      			saveDefaultConfig();
@@ -147,11 +143,28 @@ public class MineverseChat extends JavaPlugin implements PluginMessageListener {
         getCommand("commandblock").setExecutor(chatExecutor);   
         getCommand("party").setExecutor(partyExecutor);
         getCommand("edit").setExecutor(configExecutor);
-        for(ChatChannel c : ccInfo.getChannelsInfo()) {
-        	CCommand cmd = new CCommand(c.getAlias());
-            cmap.register("", cmd);
-            cmd.setExecutor(chatExecutor);
-        }   
+        try {
+        	if(VersionHandler.is1_7_9()) {     		
+        		cmap = V1_7_9.v1_7_9();     		
+        	}
+        	if(VersionHandler.is1_7_10()) {
+        		cmap = V1_7_10.v1_7_10();
+        	}
+ 		}
+        catch(Exception e) {
+        	e.printStackTrace();
+        }
+        if(cmap == null) {
+        	 log.info(String.format("[" + String.format(getConfig().getString("pluginname", "MineverseChat") + "]" + " - Unrecognized server version, Quickchat commands not registering", getDescription().getName())));
+        }
+        else {     
+        	for(ChatChannel c : ccInfo.getChannelsInfo()) {			
+        		CCommand cmd = new CCommand(c.getAlias());
+        		cmap.register("", cmd);
+        		cmd.setExecutor(chatExecutor);
+        	}
+        	log.info(String.format("[" + String.format(getConfig().getString("pluginname", "MineverseChat") + "]" + " - Registering Quickchat commands", getDescription().getName())));
+        }
         log.info(String.format("[" + String.format(getConfig().getString("pluginname", "MineverseChat") + "]" + " - Establishing BungeeCord", getDescription().getName())));
         Bukkit.getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
         Bukkit.getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
