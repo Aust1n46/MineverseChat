@@ -16,6 +16,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.PluginManager;
+import org.kitteh.vanish.staticaccess.VanishNoPacket;
 import com.massivecraft.factions.entity.UPlayer;
 import com.palmergames.bukkit.towny.object.Resident;
 import com.palmergames.bukkit.towny.object.TownyUniverse;
@@ -27,6 +28,7 @@ import mineverse.Aust1n46.chat.ChatChannel;
 import mineverse.Aust1n46.chat.ChatChannelInfo;
 import mineverse.Aust1n46.chat.MineverseChat;
 
+@SuppressWarnings("deprecation")
 public class ChatListener implements Listener {
     MineverseChat plugin;
     List<String> filters;
@@ -200,6 +202,17 @@ public class ChatListener implements Listener {
         				event.setCancelled(true);
         				return;
         			}			 
+        			PluginManager pluginManager = plugin.getServer().getPluginManager();
+        			if(pluginManager.isPluginEnabled("VanishNoPacket")) {
+        				try {
+        					if(VanishNoPacket.isVanished(fp.getName())) {			       										    				
+        						break;			 
+        					}
+        				} 
+        				catch(Exception e) {					
+        					e.printStackTrace();
+        				}
+        			}
         			String playerignorelist = plugin.getMetadataString(fp, "MineverseChat.ignore", plugin);
         			if(playerignorelist.length() > 0) {
         				String curplayer = "";
