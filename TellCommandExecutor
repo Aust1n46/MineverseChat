@@ -1,0 +1,385 @@
+package mineverse.Aust1n46.chat.command;
+
+import java.util.StringTokenizer;
+import java.util.logging.Logger;
+import mineverse.Aust1n46.chat.ChatChannelInfo;
+import mineverse.Aust1n46.chat.MineverseChat;
+import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.plugin.PluginManager;
+import org.kitteh.vanish.staticaccess.VanishNoPacket;
+
+@SuppressWarnings("deprecation")
+public class TellCommandExecutor implements CommandExecutor {
+	private MineverseChat plugin;
+	ChatChannelInfo cc;
+	private static final Logger log = Logger.getLogger("Minecraft");
+	
+	public TellCommandExecutor(MineverseChat _plugin, ChatChannelInfo _cc) {
+		plugin = _plugin;
+		cc = _cc;
+	}
+
+	@Override
+	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {	
+		String ignorelist;
+		
+		String comm = cmd.getName().toLowerCase();
+		if(!(sender instanceof Player)) {
+    		log.info(String.format("[" + String.format(plugin.getConfig().getString("pluginname", "MineverseChat") + "]" + " - This command must be run by a player!", plugin.getDescription().getName())));
+    		return true;
+    	}
+        Player player = (Player) sender;  
+        
+        if(args == null) {
+            return false;
+        }
+		
+        switch(comm) {
+        	case "afk": {
+        		if(args.length >= 0) {
+        			if(!plugin.getMetadata(player, "MineverseChat.afk", plugin)) {
+    					player.setMetadata("MineverseChat.afk", new FixedMetadataValue(plugin,true));
+    					player.sendMessage(ChatColor.GOLD + "You are now AFK.");
+    					Player pl[] = plugin.getServer().getOnlinePlayers();
+    					if(plugin.getConfig().getBoolean("broadcastafk")) {
+    						for (Player p : pl) {
+    							if(p.getDisplayName() != player.getDisplayName()) {
+    								p.sendMessage(ChatColor.GOLD + player.getDisplayName() + " is now AFK.");
+    							}
+    						}
+    					}
+    					return true;
+    				}
+    				else {
+    					player.setMetadata("MineverseChat.afk", new FixedMetadataValue(plugin,false));
+    					player.sendMessage(ChatColor.GOLD + "You are no longer AFK.");
+    					Player pl[] = plugin.getServer().getOnlinePlayers();
+    					if(plugin.getConfig().getBoolean("broadcastafk")) {
+    						for (Player p : pl) {
+    							if(p.getDisplayName() != player.getDisplayName()) {
+    								p.sendMessage(ChatColor.GOLD + player.getDisplayName() + " is no longer AFK.");
+    							}
+    						}
+    					}
+    					return true;
+    				}
+    			}
+        	}
+        	
+        	case "spy": {
+        		if(player.hasPermission("mineversechat.spy")) {
+    				if(plugin.getMetadata(player, "MineverseChat.spy", plugin) != true) {
+    					if(plugin.getMetadata(player, "MineverseChat.commandspy", plugin) == true) {
+    						player.setMetadata("MineverseChat.commandspy", new FixedMetadataValue(plugin,false));
+            				player.sendMessage(ChatColor.GOLD + "You are no longer spying on commands.\nTo avoid double sending while spying on tells.");
+    					}
+    					player.setMetadata("MineverseChat.spy", new FixedMetadataValue(plugin,true));
+    					player.sendMessage(ChatColor.GOLD + "You are now spying on tells.");
+    					return true;
+    				}
+    				else {
+    					player.setMetadata("MineverseChat.spy", new FixedMetadataValue(plugin,false));
+    					player.sendMessage(ChatColor.GOLD + "You are no longer spying on tells.");
+    					return true;
+    				}
+    			}
+    			else {
+    				player.sendMessage(ChatColor.RED + "You do not have permission for this command.");
+    				return true;
+    			}			
+        	}
+        	
+        	case "ignore": {       		    		
+    			if(args.length == 0) {
+    				player.sendMessage(ChatColor.RED + "Invalid command: /ignore [player] or /ignore list");
+    				return true;
+    			}    			 
+    			if(args.length == 1) {
+    				String newignorelist = "";    		
+    				if(args[0].equalsIgnoreCase("list")) {   					  						 
+    					ignorelist = plugin.getMetadataString(player, "MineverseChat.ignore", plugin);    
+    					player.sendMessage(ChatColor.GOLD+"You are currently ignoring these players:"+ChatColor.RED);
+    					if(ignorelist.length() > 0) {
+    						long linecount = plugin.getLineLength();
+    						String curignores = "";
+    						String nextpl ="";
+    			            StringTokenizer st = new StringTokenizer(ignorelist, ",");			           
+    			            while(st.hasMoreTokens()) {  			                        
+    			            	nextpl = st.nextToken();	                    	
+    			                if(curignores.length() + nextpl.length()> linecount) {
+    			                	curignores += "\n" + nextpl;
+    			                    linecount = linecount + plugin.getLineLength();	   			                    	
+    			                }
+    			                else {
+    			                	curignores += ChatColor.RED + nextpl;
+    			                }		                  
+    			                curignores += ChatColor.WHITE+", ";
+    			            } 
+    						curignores = curignores.substring(0, curignores.length()-2);
+    						player.sendMessage(curignores);
+    					}	     					
+    					return true;
+    				} 
+    				if(args[0].length() > 0) { 
+    					ignorelist = plugin.getMetadataString(player, "MineverseChat.ignore", plugin);
+    					Boolean bFoundRemove = false;
+    					if(ignorelist.length() > 0) {	        
+    						String curplayer = "";
+    			            StringTokenizer st = new StringTokenizer(ignorelist, ",");
+    			            while(st.hasMoreTokens()) {   			                     
+    			            	curplayer=st.nextToken();
+    			                if(curplayer.equalsIgnoreCase(args[0])) {
+    			                	player.sendMessage(ChatColor.GOLD + "You are no longer ignoring player: " + ChatColor.RED + args[0]);
+    			                    bFoundRemove = true;			                        	
+    			                }
+    			                else {
+    			                	newignorelist += curplayer + "," ;   			                        				                        	
+    			                }
+    			            }  			                 
+    			            if(newignorelist.length() > 0) {	                   
+    			            	newignorelist = newignorelist.substring(0, newignorelist.length()-1);
+    			            }
+    			            player.setMetadata("MineverseChat.ignore", new FixedMetadataValue(plugin,newignorelist));
+    					}				
+    					if(bFoundRemove == false) {
+    						Player tp = null;
+    						tp= sender.getServer().getPlayer(args[0]);
+    						if(tp == null) {
+    							if(player!=null) {
+    								player.sendMessage(ChatColor.RED + "Player: " + ChatColor.GOLD + args[0] + ChatColor.RED + " is not online."); 
+    							}   						
+    							return true;
+    						}	
+    						if(tp.hasPermission("mineversechat.ignore.bypass")) {
+    							player.sendMessage(ChatColor.RED + "You cannot ignore player: " + ChatColor.GOLD + tp.getName() + ChatColor.RED + ".");
+    							return true;
+    						}
+    						if(newignorelist.length() == 0) {
+    							newignorelist += args[0];
+    						}
+    						else {
+    							newignorelist += "," + args[0];
+    						}
+    						player.sendMessage(ChatColor.GOLD + "You are now ignoring player: " + ChatColor.RED + args[0]);    							 
+    						player.setMetadata("MineverseChat.ignore", new FixedMetadataValue(plugin,newignorelist));		 
+    					}   					    					
+    					return true; 			
+    				}				
+    			}   			   			
+    			return false; 			 
+        	}
+        	
+        	case "tell":
+        	case "whisper":
+        	case "message": {        						
+    			if(args.length == 0) {	
+    				player.sendMessage(ChatColor.RED + "Invalid command: /" + cmd.getName() + " [player] [msg]");
+    				return true;
+    			}   			
+    			Player tp= null;
+    			tp = sender.getServer().getPlayer(args[0]);
+    			PluginManager pluginManager = plugin.getServer().getPluginManager();
+    			if(pluginManager.isPluginEnabled("VanishNoPacket")) {
+    				try {
+    					if(tp == null || VanishNoPacket.isVanished(tp.getName())) {			
+    						if(player!=null) {
+    							player.sendMessage(ChatColor.RED + "Player: " + ChatColor.GOLD + args[0] + ChatColor.RED + " is not online.");   					 
+    						}					    				
+    						return true; 				 
+    					}
+    				} 
+    				catch(Exception e) {					
+    					e.printStackTrace();
+    				}
+    			}
+    			String playerignorelist = plugin.getMetadataString(tp, "MineverseChat.ignore", plugin);				 
+    			if(playerignorelist.length() > 0) {	        
+    				String curplayer = "";
+                    StringTokenizer st = new StringTokenizer(playerignorelist, ",");
+                    while(st.hasMoreTokens()) {                     		                        
+                    	curplayer=st.nextToken();
+                        if(curplayer.equalsIgnoreCase(player.getName())) {
+                        	player.sendMessage(ChatColor.GOLD + args[0] + " is currently ignoring your tells.");
+                            return true;                       	
+                        }
+                    }		                   
+    			} 			    				 
+    			if(args.length >= 2) {
+    				String msg = "";
+    				String echo = "";
+    				String send = "";
+    				String spy = "";
+    				if(args[1].length() > 0) {
+    					for(int r = 1; r < args.length; r++) {
+    						msg += " " + args[r];
+    					}
+    					if(plugin.getMetadata(player, "MineverseChat.filter", plugin)) {
+    						msg = cc.FilterChat(msg);
+        				}		
+    					if(player.isPermissionSet("mineversechat.color")) {
+    						msg = cc.FormatStringColor(msg);
+    		            }    					
+    					if(player.isPermissionSet("mineversechat.format")) {
+    						msg = cc.FormatString(msg);    					
+    		            }    
+    					if(plugin.getMetadata(tp, "MineverseChat.afk", plugin) == true) {
+    						player.sendMessage(ChatColor.GOLD + args[0] + " is currently afk and might be unable to chat at this time.");
+    					}
+    					if(plugin.getConfig().getString("tellformatto").equalsIgnoreCase("Default")) {
+    						echo = "You message " + tp.getDisplayName() + ":" + ChatColor.valueOf(cc.tellColor.toUpperCase()) + msg;	
+    					}
+    					else {
+    						echo = cc.FormatStringAll(plugin.getConfig().getString("tellformatto").replace("{playerto}", tp.getName()).replace("{playerfrom}", player.getName())) + msg;
+    					}
+    					if(plugin.getConfig().getString("tellformatfrom").equalsIgnoreCase("Default")) {
+    						send = player.getDisplayName() + " messages you:"+ ChatColor.valueOf(cc.tellColor.toUpperCase()) + msg;
+    					}
+    					else {
+    						send = cc.FormatStringAll(plugin.getConfig().getString("tellformatfrom").replace("{playerto}", tp.getName()).replace("{playerfrom}", player.getName())) + msg;
+    					}
+    					if(plugin.getConfig().getString("tellformatspy").equalsIgnoreCase("Default")) {
+    						spy = player.getDisplayName() + " messages " + tp.getDisplayName() + ":" + ChatColor.valueOf(cc.tellColor.toUpperCase()) + msg;    							
+    					}
+    					else {
+    						spy = cc.FormatStringAll(plugin.getConfig().getString("tellformatspy").replace("{playerto}", tp.getName()).replace("{playerfrom}", player.getName())) + msg;
+    					}   					  					    					  					
+    					tp.setMetadata("MineverseChat.reply", new FixedMetadataValue(plugin,player.getName()));
+    					player.setMetadata("MineverseChat.reply", new FixedMetadataValue(plugin,tp.getName()));
+    					tp.sendMessage(send);
+    					player.sendMessage(echo);
+    					Player pl[] = plugin.getServer().getOnlinePlayers();
+    					for(Player sp : pl) {
+    						if(plugin.getMetadata(sp,"MineverseChat.spy", plugin)) {          							
+    							sp.sendMessage(spy);    							
+    	            		}							
+    	            	}  
+    				}    						
+    			}	    				 
+    			if(args.length == 1) {
+    				if(args[0].length() > 0) {    
+    					if(!plugin.getMetadataString(player, "MineverseChat.tell", plugin).equals(args[0])) {
+    						player.setMetadata("MineverseChat.tell", new FixedMetadataValue(plugin,args[0]));
+    						Player pl[] = plugin.getServer().getOnlinePlayers();
+    						for(Player sp : pl) {
+    							if(plugin.getMetadata(sp,"MineverseChat.spy", plugin) == true) {         					
+    								sp.sendMessage(player.getDisplayName() + " started a private conversation with " + tp.getDisplayName() + ".");
+    							}							
+    						}
+    						player.sendMessage("You are now in private conversation with " + args[0] + ".");
+    					}
+    					else {
+    						player.setMetadata("MineverseChat.tell", new FixedMetadataValue(plugin,""));
+    						Player pl[] = plugin.getServer().getOnlinePlayers();
+    						for(Player sp : pl) {
+    							if(plugin.getMetadata(sp,"MineverseChat.spy", plugin) == true) {         					
+    								sp.sendMessage(player.getDisplayName() + " is no longer in a private conversation with " + tp.getDisplayName() + ".");
+    							}							
+    						}
+    						player.sendMessage("You are no longer in private conversation with " + args[0] + ".");
+    					}
+    				}
+    			} 		            		    
+    		    return true;
+        	}
+        	
+        	case "reply": {
+        		if(args.length > 0) {
+        			String reply = plugin.getMetadataString(player, "MineverseChat.reply", plugin);
+    				if(reply != "") {
+    					Player tp = null;
+    					tp = plugin.getServer().getPlayer(reply);
+    					PluginManager pluginManager = plugin.getServer().getPluginManager();
+    	    			if(pluginManager.isPluginEnabled("VanishNoPacket")) {
+    	    				try {
+								if(tp == null || VanishNoPacket.isVanished(tp.getName())) {
+									if(player != null) {
+										player.sendMessage(ChatColor.RED + reply + " has left the game.");
+										player.setMetadata("MineverseChat.reply", new FixedMetadataValue(plugin,""));
+									}
+									return true;
+								}
+							} 
+    	    				catch(Exception e) {								
+								e.printStackTrace();
+							}
+    	    			}
+    					String playerignorelist = plugin.getMetadataString(tp, "MineverseChat.ignore", plugin);				 
+    					if(playerignorelist.length() > 0) {	        
+    						String curplayer = "";
+    						StringTokenizer st = new StringTokenizer(playerignorelist, ",");
+    						while(st.hasMoreTokens()) {   		                        
+    							curplayer=st.nextToken();
+    							if(curplayer.equalsIgnoreCase(player.getName())) {
+    								player.sendMessage(ChatColor.GOLD + tp.getDisplayName() + " is currently ignoring your replies.");
+    								return true;                       	
+    							}
+    						}		                   
+    					} 
+    					String msg = "";
+    					String echo = "";
+    					String send = "";
+    					String spy = "";
+    					if (args.length > 0) {										
+    						for(int r = 0; r < args.length; r++) msg +=" " + args[r];
+    						if(plugin.getMetadata(player, "MineverseChat.filter", plugin)) {
+        						msg = cc.FilterChat(msg);
+            				}
+    						if(player.isPermissionSet("mineversechat.color")) {
+     		                    msg = cc.FormatStringColor(msg);
+    						}
+    						if(player.isPermissionSet("mineversechat.format")) {
+     		                    msg = cc.FormatString(msg);
+    						}
+    						if(plugin.getMetadata(tp, "MineverseChat.afk", plugin) == true) {
+    							player.sendMessage(ChatColor.GOLD + tp.getDisplayName() + " is currently afk and might be unable to chat at this time.");
+    						}
+    						if(plugin.getConfig().getString("replyformatto").equalsIgnoreCase("Default")) {
+    							echo = "You reply to " + tp.getDisplayName() + ":" + ChatColor.valueOf(cc.tellColor.toUpperCase()) + msg;						
+        					}
+        					else {
+        						echo = cc.FormatStringAll(plugin.getConfig().getString("replyformatto").replace("{playerto}", tp.getName()).replace("{playerfrom}", player.getName())) + msg;
+        					}
+        					if(plugin.getConfig().getString("replyformatfrom").equalsIgnoreCase("Default")) {
+        						send = player.getDisplayName()  + " replies to you:" + ChatColor.valueOf(cc.tellColor.toUpperCase()) + msg;
+        					}
+        					else {
+        						send = cc.FormatStringAll(plugin.getConfig().getString("replyformatfrom").replace("{playerto}", tp.getName()).replace("{playerfrom}", player.getName())) + msg;
+        					}
+        					if(plugin.getConfig().getString("replyformatspy").equalsIgnoreCase("Default")) {
+        						spy = player.getDisplayName() + " replied to " + tp.getDisplayName() + ":" + ChatColor.valueOf(cc.tellColor.toUpperCase()) + msg;
+        					}
+        					else {
+        						spy = cc.FormatStringAll(plugin.getConfig().getString("replyformatspy").replace("{playerto}", tp.getName()).replace("{playerfrom}", player.getName())) + msg;
+        					}  
+    						Player pl[] = plugin.getServer().getOnlinePlayers();
+    						for (Player sp : pl) {
+    							if(plugin.getMetadata(sp,"MineverseChat.spy", plugin)) {         					
+    								sp.sendMessage(spy);
+    							}							
+    						}
+    						tp.sendMessage(send);
+    						player.sendMessage(echo);
+    						tp.setMetadata("MineverseChat.reply", new FixedMetadataValue(plugin, player.getName()));
+    						player.setMetadata("MineverseChat.reply", new FixedMetadataValue(plugin, tp.getName()));
+    						return true;																						
+    					}
+    				}
+    				else {
+    					player.sendMessage(ChatColor.RED + "You do not have anyone to reply to.");
+    				}
+    				return true;
+    			}
+    			else {
+    				player.sendMessage(ChatColor.RED + "Invalid command: /reply [msg]");
+    				return true;
+    			}
+    		}
+        }
+		return false;
+	}			
+}
