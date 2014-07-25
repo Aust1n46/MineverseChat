@@ -150,7 +150,7 @@ public class PartyCommandExecutor implements CommandExecutor {
         	                    Player pl[] = plugin.getServer().getOnlinePlayers();
         	                    for(Player sp : pl) {
         							if(plugin.getMetadata(sp,"MineverseChat.spy", plugin) == true) {         					
-        								sp.sendMessage(player.getDisplayName() + " is no longer in a private conversation with " + tellchat + ".");
+        								sp.sendMessage(player.getName() + " is no longer in a private conversation with " + tellchat + ".");
         							}							
         						}
         	                    player.sendMessage("You are no longer in private conversation with " + tellchat);
