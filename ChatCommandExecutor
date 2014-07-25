@@ -51,11 +51,11 @@ public class ChatCommandExecutor implements CommandExecutor, Listener {
         for(Player p : pl) {
         	if(plugin.getMetadata(p, "MineverseChat.commandspy", plugin) == true) {	
         		if(wec == true) {        		
-        			p.sendMessage(ChatColor.GOLD + e.getPlayer().getDisplayName() + ": " + e.getMessage());
+        			p.sendMessage(ChatColor.GOLD + e.getPlayer().getName() + ": " + e.getMessage());
          		}
         		else {
         			if(!(e.getMessage().toLowerCase().startsWith("//"))) {
-        				p.sendMessage(ChatColor.GOLD + e.getPlayer().getDisplayName() + ": " + e.getMessage());
+        				p.sendMessage(ChatColor.GOLD + e.getPlayer().getName() + ": " + e.getMessage());
         			}
         		}
          	}
@@ -70,8 +70,8 @@ public class ChatCommandExecutor implements CommandExecutor, Listener {
     			Player pla[] = plugin.getServer().getOnlinePlayers();
     			if(plugin.getConfig().getBoolean("broadcastafk")) {
     				for (Player p : pla) {
-    					if(player.getDisplayName() != p.getDisplayName()) {
-    						p.sendMessage(ChatColor.GOLD + p.getDisplayName() + " is no longer AFK.");
+    					if(player.getName() != p.getName()) {
+    						p.sendMessage(ChatColor.GOLD + p.getName() + " is no longer AFK.");
     					}
     				}
     			}
@@ -184,6 +184,8 @@ public class ChatCommandExecutor implements CommandExecutor, Listener {
     			String prefix = cc.FormatStringAll(MineverseChat.chat.getPlayerPrefix(player));
     			String suffix = cc.FormatStringAll(MineverseChat.chat.getPlayerSuffix(player));
     			String group = MineverseChat.chat.getPrimaryGroup(player);   
+    			String groupprefix = cc.FormatStringAll(MineverseChat.chat.getGroupPrefix(player.getWorld(), group));
+    			String groupsuffix = cc.FormatStringAll(MineverseChat.chat.getGroupSuffix(player.getWorld(), group));
             	if(pluginManager.isPluginEnabled("Towny")) {
             		try {
 						Resident r = TownyUniverse.getDataSource().getResident(player.getName());
@@ -221,12 +223,12 @@ public class ChatCommandExecutor implements CommandExecutor, Listener {
 					}  
             	}  
             	if(plugin.getConfig().getConfigurationSection("channels." + ci.getName()).getString("format").equalsIgnoreCase("Default")) {
-            		format = ChatColor.valueOf(ci.getColor().toUpperCase()) + "[" + ci.getName() + "] " + prefix + "%s" + ChatColor.valueOf(ci.getColor().toUpperCase()) + ":" + ChatColor.valueOf(ci.getChatColor().toUpperCase());
+            		format = ChatColor.valueOf(ci.getColor().toUpperCase()) + "[" + ci.getName() + "] " + prefix + player.getName() + ChatColor.valueOf(ci.getColor().toUpperCase()) + ":" + ChatColor.valueOf(ci.getChatColor().toUpperCase());
             		Bungeeformat = ChatColor.valueOf(ci.getColor().toUpperCase()) + player.getServer().getServerName() + " [" + ci.getName() + "] " + prefix + player.getName() + ChatColor.valueOf(ci.getColor().toUpperCase()) + ":" + ChatColor.valueOf(ci.getChatColor().toUpperCase());
             	}
-            	else {
-            		format = cc.FormatStringAll(plugin.getConfig().getConfigurationSection("channels." + ci.getName()).getString("format").replace("{town}", town).replace("{nation}", nation).replace("{name}", "%s").replace("{townytitle}", ttitle).replace("{prefix}", prefix).replace("{suffix}", suffix).replace("{faction}", faction).replace("{factionstitle}", ftitle).replace("{servername}", player.getServer().getServerName()).replace("{pretown}", ptown).replace("{prenation}", pnation).replace("{group}", group));
-            		Bungeeformat = cc.FormatStringAll(plugin.getConfig().getConfigurationSection("channels." + ci.getName()).getString("format").replace("{town}", town).replace("{nation}", nation).replace("{name}", player.getName()).replace("{townytitle}", ttitle).replace("{prefix}", prefix).replace("{suffix}", suffix).replace("{faction}", faction).replace("{factionstitle}", ftitle).replace("{servername}", player.getServer().getServerName()).replace("{pretown}", ptown).replace("{prenation}", pnation).replace("{group}", group));                	
+            	else {            		
+            		format = cc.FormatStringAll(plugin.getConfig().getConfigurationSection("channels." + ci.getName()).getString("format").replace("{town}", town).replace("{nation}", nation).replace("{name}", player.getName()).replace("{townytitle}", ttitle).replace("{prefix}", prefix).replace("{suffix}", suffix).replace("{faction}", faction).replace("{factionstitle}", ftitle).replace("{servername}", player.getServer().getServerName()).replace("{pretown}", ptown).replace("{prenation}", pnation).replace("{group}", group).replace("{groupprefix}", groupprefix).replace("{groupsuffix}", groupsuffix));
+            		Bungeeformat = cc.FormatStringAll(plugin.getConfig().getConfigurationSection("channels." + ci.getName()).getString("format").replace("{town}", town).replace("{nation}", nation).replace("{name}", player.getName()).replace("{townytitle}", ttitle).replace("{prefix}", prefix).replace("{suffix}", suffix).replace("{faction}", faction).replace("{factionstitle}", ftitle).replace("{servername}", player.getServer().getServerName()).replace("{pretown}", ptown).replace("{prenation}", pnation).replace("{group}", group).replace("{groupprefix}", groupprefix).replace("{groupsuffix}", groupsuffix));                	
             		if(plugin.getConfig().getBoolean("formatcleaner", false)) {
             			format = format.replace("[]", " ");
             			Bungeeformat = Bungeeformat.replace("[]", " ");
@@ -275,10 +277,10 @@ public class ChatCommandExecutor implements CommandExecutor, Listener {
                         Player pl[] = plugin.getServer().getOnlinePlayers();
 						for(Player sp : pl) {
 							if(plugin.getMetadata(sp,"MineverseChat.spy", plugin) == true) {         					
-								sp.sendMessage(player.getDisplayName() + " is no longer in a private conversation with " + tellchat + ".");
+								sp.sendMessage(player.getName() + " is no longer in a private conversation with " + tellchat + ".");
 							}							
 						}
-                        player.sendMessage("You are no longer in private conversation with " + tellchat);
+                        player.sendMessage("You are no longer in private conversation with " + tellchat + ".");
                     }
 
                     player.setMetadata("listenchannel." + chname.getName(), new FixedMetadataValue(plugin, true));
@@ -339,11 +341,11 @@ public class ChatCommandExecutor implements CommandExecutor, Listener {
 						}
             			String filtered = cc.FilterChat(msg); 
             			if(plugin.getMetadata(player, "MineverseChat.filter", plugin)) {
-            				plugin.getServer().broadcastMessage("* " + player.getDisplayName() + filtered);
+            				plugin.getServer().broadcastMessage("* " + player.getName() + filtered);
             				return true;
             			}
             			else {
-            				plugin.getServer().broadcastMessage("* " + player.getDisplayName() + msg);
+            				plugin.getServer().broadcastMessage("* " + player.getName() + msg);
             				return true;
             			}
             		}
@@ -385,7 +387,7 @@ public class ChatCommandExecutor implements CommandExecutor, Listener {
         			String tellplayer = plugin.getMetadataString(player, "MineverseChat.tell", plugin);
         			Player tp = plugin.getServer().getPlayer(tellplayer);
             		if(args.length < 1) {
-            			player.sendMessage(ChatColor.GOLD + "Player: " + ChatColor.GREEN + player.getDisplayName());
+            			player.sendMessage(ChatColor.GOLD + "Player: " + ChatColor.GREEN + player.getName());
             			for(ChatChannel ci : cc.getChannelsInfo()) {
             				if(plugin.getMetadata(player,"listenchannel." + ci.getName(), plugin) == true) {
             					listen += ChatColor.valueOf(ci.getColor().toUpperCase()) + ci.getName() + " ";
@@ -413,7 +415,7 @@ public class ChatCommandExecutor implements CommandExecutor, Listener {
             				player.sendMessage(ChatColor.GOLD + "Blocked Commands: " + ChatColor.RED + "N/A");
             			}
             			if(tellplayer.length() > 0) {
-            				player.sendMessage(ChatColor.GOLD + "Private conversation: " + ChatColor.GREEN + tp.getDisplayName());
+            				player.sendMessage(ChatColor.GOLD + "Private conversation: " + ChatColor.GREEN + tp.getName());
             			}
             			else {
             				player.sendMessage(ChatColor.GOLD + "Private conversation: " + ChatColor.RED + "N/A");
@@ -454,7 +456,7 @@ public class ChatCommandExecutor implements CommandExecutor, Listener {
             					return true;
             				}
             				else {
-            					player.sendMessage(ChatColor.GOLD + "Player: " + ChatColor.GREEN + targetPlayer.getDisplayName());
+            					player.sendMessage(ChatColor.GOLD + "Player: " + ChatColor.GREEN + targetPlayer.getName());
             					for(ChatChannel ci : cc.getChannelsInfo()) {
             						if(plugin.getMetadata(targetPlayer,"listenchannel." + ci.getName(), plugin) == true) {
             							listen += ChatColor.valueOf(ci.getColor().toUpperCase()) + ci.getName() + " ";
@@ -484,7 +486,7 @@ public class ChatCommandExecutor implements CommandExecutor, Listener {
             					String telltargetPlayer = plugin.getMetadataString(targetPlayer, "MineverseChat.tell", plugin);
             					Player ttp = plugin.getServer().getPlayer(telltargetPlayer);
             					if(telltargetPlayer.length() > 0) {
-            						player.sendMessage(ChatColor.GOLD + "Private conversation: " + ChatColor.GREEN + ttp.getDisplayName());
+            						player.sendMessage(ChatColor.GOLD + "Private conversation: " + ChatColor.GREEN + ttp.getName());
             					}
             					else {
             						player.sendMessage(ChatColor.GOLD + "Private conversation: " + ChatColor.RED + "N/A");
@@ -570,7 +572,7 @@ public class ChatCommandExecutor implements CommandExecutor, Listener {
             }
             
             case "mineversechat": {           	      		
-            	player.sendMessage(ChatColor.GOLD + "MineverseChat Version: 1.5.1");
+            	player.sendMessage(ChatColor.GOLD + "MineverseChat Version: " + plugin.getDescription().getVersion());
             	player.sendMessage(ChatColor.GOLD + "Written by Aust1n46");
             	return true;         	
             }
@@ -705,7 +707,7 @@ public class ChatCommandExecutor implements CommandExecutor, Listener {
             			for(int x = 1; x < args.length; x++) {                   
                         	 if(args[x].length() > 0) forcemsg += args[x] + " ";
                         }
-                        player.sendMessage(ChatColor.GOLD + "Forcing player " + ChatColor.RED + targetPlayer.getDisplayName() + ChatColor.GOLD + " to run: " + ChatColor.RED + forcemsg);
+                        player.sendMessage(ChatColor.GOLD + "Forcing player " + ChatColor.RED + targetPlayer.getName() + ChatColor.GOLD + " to run: " + ChatColor.RED + forcemsg);
             			targetPlayer.chat(forcemsg);
                         return true;
             		}
@@ -779,7 +781,7 @@ public class ChatCommandExecutor implements CommandExecutor, Listener {
    						 	Player pl[] = plugin.getServer().getOnlinePlayers();
    						 	for(Player sp : pl) {
    						 		if(plugin.getMetadata(sp,"MineverseChat.spy", plugin) == true) {         					
-   						 			sp.sendMessage(player.getDisplayName() + " is no longer in a private conversation with " + tellchat + ".");
+   						 			sp.sendMessage(player.getName() + " is no longer in a private conversation with " + tellchat + ".");
    						 		}							
    						 	}
    						 	targetPlayer.sendMessage("You are no longer in private conversation with " + tellchat + ".");
