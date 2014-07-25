@@ -4,6 +4,7 @@ import java.util.StringTokenizer;
 import java.util.logging.Logger;
 import mineverse.Aust1n46.chat.ChatChannelInfo;
 import mineverse.Aust1n46.chat.MineverseChat;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -48,8 +49,8 @@ public class TellCommandExecutor implements CommandExecutor {
     					Player pl[] = plugin.getServer().getOnlinePlayers();
     					if(plugin.getConfig().getBoolean("broadcastafk")) {
     						for (Player p : pl) {
-    							if(p.getDisplayName() != player.getDisplayName()) {
-    								p.sendMessage(ChatColor.GOLD + player.getDisplayName() + " is now AFK.");
+    							if(p.getName() != player.getName()) {
+    								p.sendMessage(ChatColor.GOLD + player.getName() + " is now AFK.");
     							}
     						}
     					}
@@ -61,8 +62,8 @@ public class TellCommandExecutor implements CommandExecutor {
     					Player pl[] = plugin.getServer().getOnlinePlayers();
     					if(plugin.getConfig().getBoolean("broadcastafk")) {
     						for (Player p : pl) {
-    							if(p.getDisplayName() != player.getDisplayName()) {
-    								p.sendMessage(ChatColor.GOLD + player.getDisplayName() + " is no longer AFK.");
+    							if(p.getName() != player.getName()) {
+    								p.sendMessage(ChatColor.GOLD + player.getName() + " is no longer AFK.");
     							}
     						}
     					}
@@ -103,7 +104,7 @@ public class TellCommandExecutor implements CommandExecutor {
     				String newignorelist = "";    		
     				if(args[0].equalsIgnoreCase("list")) {   					  						 
     					ignorelist = plugin.getMetadataString(player, "MineverseChat.ignore", plugin);    
-    					player.sendMessage(ChatColor.GOLD+"You are currently ignoring these players:"+ChatColor.RED);
+    					player.sendMessage(ChatColor.GOLD + "You are currently ignoring these players:"+ChatColor.RED);
     					if(ignorelist.length() > 0) {
     						long linecount = plugin.getLineLength();
     						String curignores = "";
@@ -180,9 +181,19 @@ public class TellCommandExecutor implements CommandExecutor {
     			if(args.length == 0) {	
     				player.sendMessage(ChatColor.RED + "Invalid command: /" + cmd.getName() + " [player] [msg]");
     				return true;
-    			}   			
-    			Player tp= null;
-    			tp = sender.getServer().getPlayer(args[0]);
+    			}   
+    			Player tp = null;
+    			boolean nick = false;
+    			for(Player p : Bukkit.getOnlinePlayers()) {   				
+    				if(p.getDisplayName().replace("§r", "").equals(args[0])) {  					
+    					nick = true;
+    					tp = p;
+    					break;
+    				}
+    			}
+    			if(!nick) {
+    				tp = plugin.getServer().getPlayer(args[0]);
+    			}
     			PluginManager pluginManager = plugin.getServer().getPluginManager();
     			if(pluginManager.isPluginEnabled("VanishNoPacket")) {
     				try {
@@ -234,16 +245,16 @@ public class TellCommandExecutor implements CommandExecutor {
     						echo = "You message " + tp.getDisplayName() + ":" + ChatColor.valueOf(cc.tellColor.toUpperCase()) + msg;	
     					}
     					else {
-    						echo = cc.FormatStringAll(plugin.getConfig().getString("tellformatto").replace("{playerto}", tp.getName()).replace("{playerfrom}", player.getName())) + msg;
+    						echo = cc.FormatStringAll(plugin.getConfig().getString("tellformatto").replace("{playerto}", tp.getDisplayName()).replace("{playerfrom}", player.getDisplayName())) + msg;
     					}
     					if(plugin.getConfig().getString("tellformatfrom").equalsIgnoreCase("Default")) {
     						send = player.getDisplayName() + " messages you:"+ ChatColor.valueOf(cc.tellColor.toUpperCase()) + msg;
     					}
     					else {
-    						send = cc.FormatStringAll(plugin.getConfig().getString("tellformatfrom").replace("{playerto}", tp.getName()).replace("{playerfrom}", player.getName())) + msg;
+    						send = cc.FormatStringAll(plugin.getConfig().getString("tellformatfrom").replace("{playerto}", tp.getDisplayName()).replace("{playerfrom}", player.getDisplayName())) + msg;
     					}
     					if(plugin.getConfig().getString("tellformatspy").equalsIgnoreCase("Default")) {
-    						spy = player.getDisplayName() + " messages " + tp.getDisplayName() + ":" + ChatColor.valueOf(cc.tellColor.toUpperCase()) + msg;    							
+    						spy = player.getName() + " messages " + tp.getName() + ":" + ChatColor.valueOf(cc.tellColor.toUpperCase()) + msg;    							
     					}
     					else {
     						spy = cc.FormatStringAll(plugin.getConfig().getString("tellformatspy").replace("{playerto}", tp.getName()).replace("{playerfrom}", player.getName())) + msg;
@@ -262,25 +273,25 @@ public class TellCommandExecutor implements CommandExecutor {
     			}	    				 
     			if(args.length == 1) {
     				if(args[0].length() > 0) {    
-    					if(!plugin.getMetadataString(player, "MineverseChat.tell", plugin).equals(args[0])) {
-    						player.setMetadata("MineverseChat.tell", new FixedMetadataValue(plugin,args[0]));
+    					if(!plugin.getMetadataString(player, "MineverseChat.tell", plugin).equals(tp.getName())) {
+    						player.setMetadata("MineverseChat.tell", new FixedMetadataValue(plugin,tp.getName()));
     						Player pl[] = plugin.getServer().getOnlinePlayers();
     						for(Player sp : pl) {
     							if(plugin.getMetadata(sp,"MineverseChat.spy", plugin) == true) {         					
-    								sp.sendMessage(player.getDisplayName() + " started a private conversation with " + tp.getDisplayName() + ".");
+    								sp.sendMessage(player.getName() + " started a private conversation with " + tp.getName() + ".");
     							}							
     						}
-    						player.sendMessage("You are now in private conversation with " + args[0] + ".");
+    						player.sendMessage("You are now in private conversation with " + tp.getDisplayName() + ".");
     					}
     					else {
     						player.setMetadata("MineverseChat.tell", new FixedMetadataValue(plugin,""));
     						Player pl[] = plugin.getServer().getOnlinePlayers();
     						for(Player sp : pl) {
     							if(plugin.getMetadata(sp,"MineverseChat.spy", plugin) == true) {         					
-    								sp.sendMessage(player.getDisplayName() + " is no longer in a private conversation with " + tp.getDisplayName() + ".");
+    								sp.sendMessage(player.getName() + " is no longer in a private conversation with " + tp.getName() + ".");
     							}							
     						}
-    						player.sendMessage("You are no longer in private conversation with " + args[0] + ".");
+    						player.sendMessage("You are no longer in private conversation with " + tp.getDisplayName() + ".");
     					}
     				}
     			} 		            		    
@@ -342,16 +353,16 @@ public class TellCommandExecutor implements CommandExecutor {
     							echo = "You reply to " + tp.getDisplayName() + ":" + ChatColor.valueOf(cc.tellColor.toUpperCase()) + msg;						
         					}
         					else {
-        						echo = cc.FormatStringAll(plugin.getConfig().getString("replyformatto").replace("{playerto}", tp.getName()).replace("{playerfrom}", player.getName())) + msg;
+        						echo = cc.FormatStringAll(plugin.getConfig().getString("replyformatto").replace("{playerto}", tp.getDisplayName()).replace("{playerfrom}", player.getDisplayName())) + msg;
         					}
         					if(plugin.getConfig().getString("replyformatfrom").equalsIgnoreCase("Default")) {
         						send = player.getDisplayName()  + " replies to you:" + ChatColor.valueOf(cc.tellColor.toUpperCase()) + msg;
         					}
         					else {
-        						send = cc.FormatStringAll(plugin.getConfig().getString("replyformatfrom").replace("{playerto}", tp.getName()).replace("{playerfrom}", player.getName())) + msg;
+        						send = cc.FormatStringAll(plugin.getConfig().getString("replyformatfrom").replace("{playerto}", tp.getDisplayName()).replace("{playerfrom}", player.getDisplayName())) + msg;
         					}
         					if(plugin.getConfig().getString("replyformatspy").equalsIgnoreCase("Default")) {
-        						spy = player.getDisplayName() + " replied to " + tp.getDisplayName() + ":" + ChatColor.valueOf(cc.tellColor.toUpperCase()) + msg;
+        						spy = player.getName() + " replied to " + tp.getName() + ":" + ChatColor.valueOf(cc.tellColor.toUpperCase()) + msg;
         					}
         					else {
         						spy = cc.FormatStringAll(plugin.getConfig().getString("replyformatspy").replace("{playerto}", tp.getName()).replace("{playerfrom}", player.getName())) + msg;
