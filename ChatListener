@@ -56,8 +56,8 @@ public class ChatListener implements Listener {
         	Player pla[] = plugin.getServer().getOnlinePlayers();
         	if(plugin.getConfig().getBoolean("broadcastafk")) {
         		for (Player player : pla) {
-        			if(p.getDisplayName() != player.getDisplayName()) {
-        				player.sendMessage(ChatColor.GOLD + p.getDisplayName() + " is no longer AFK.");
+        			if(p.getName() != player.getName()) {
+        				player.sendMessage(ChatColor.GOLD + p.getName() + " is no longer AFK.");
         			}
         		}
         	}
@@ -79,8 +79,8 @@ public class ChatListener implements Listener {
         	Player pla[] = plugin.getServer().getOnlinePlayers();
         	if(plugin.getConfig().getBoolean("broadcastafk")) {
         		for (Player player : pla) {
-        			if(p.getDisplayName() != player.getDisplayName()) {
-        				player.sendMessage(ChatColor.GOLD + p.getDisplayName() + " is no longer AFK.");
+        			if(p.getName() != player.getName()) {
+        				player.sendMessage(ChatColor.GOLD + p.getName() + " is no longer AFK.");
         			}
         		}
         	}
@@ -93,7 +93,7 @@ public class ChatListener implements Listener {
                 Player pl[] = plugin.getServer().getOnlinePlayers();
 				for(Player sp : pl) {
 					if(plugin.getMetadata(sp,"MineverseChat.spy", plugin) == true) {         					
-						sp.sendMessage(p.getDisplayName() + " is no longer in a private conversation with " + tellPlayer + ".");
+						sp.sendMessage(p.getName() + " is no longer in a private conversation with " + tellPlayer + ".");
 					}							
 				}
                 p.setMetadata("MineverseChat.tell", new FixedMetadataValue(plugin, ""));
@@ -130,16 +130,16 @@ public class ChatListener implements Listener {
 					echo = "You message " + tp.getDisplayName() + ":" + ChatColor.valueOf(cc.tellColor.toUpperCase()) + filtered;	
 				}
 				else {
-					echo = cc.FormatStringAll(plugin.getConfig().getString("tellformatto").replace("{playerto}", tp.getName()).replace("{playerfrom}", p.getName())) + filtered;
+					echo = cc.FormatStringAll(plugin.getConfig().getString("tellformatto").replace("{playerto}", tp.getDisplayName()).replace("{playerfrom}", p.getDisplayName())) + filtered;
 				}
 				if(plugin.getConfig().getString("tellformatfrom").equalsIgnoreCase("Default")) {
 					send = p.getDisplayName() + " messages you:"+ ChatColor.valueOf(cc.tellColor.toUpperCase()) + filtered;
 				}
 				else {
-					send = cc.FormatStringAll(plugin.getConfig().getString("tellformatfrom").replace("{playerto}", tp.getName()).replace("{playerfrom}", p.getName())) + filtered;
+					send = cc.FormatStringAll(plugin.getConfig().getString("tellformatfrom").replace("{playerto}", tp.getDisplayName()).replace("{playerfrom}", p.getDisplayName())) + filtered;
 				}
 				if(plugin.getConfig().getString("tellformatspy").equalsIgnoreCase("Default")) {
-					spy = p.getDisplayName() + " messages " + tp.getDisplayName() + ":" + ChatColor.valueOf(cc.tellColor.toUpperCase()) + filtered;    							
+					spy = p.getName() + " messages " + tp.getName() + ":" + ChatColor.valueOf(cc.tellColor.toUpperCase()) + filtered;    							
 				}
 				else {
 					spy = cc.FormatStringAll(plugin.getConfig().getString("tellformatspy").replace("{playerto}", tp.getName()).replace("{playerfrom}", p.getName())) + filtered;
@@ -195,7 +195,83 @@ public class ChatListener implements Listener {
         Player fpl[] = plugin.getServer().getOnlinePlayers();
         if(event.getMessage().startsWith("@")) {
         	for(Player fp : fpl) {
-        		if(event.getMessage().startsWith("@" + fp.getDisplayName())) {
+        		if(event.getMessage().startsWith("@" + fp.getDisplayName().replace("§r", ""))) {
+        			String format = event.getMessage().substring(fp.getDisplayName().length() -1);            			
+        			if(event.getMessage().length() <= fp.getDisplayName().length()) {
+        				p.sendMessage(ChatColor.RED + "You must include a message.");
+        				event.setCancelled(true);
+        				return;
+        			}			 
+        			PluginManager pluginManager = plugin.getServer().getPluginManager();
+        			if(pluginManager.isPluginEnabled("VanishNoPacket")) {
+        				try {
+        					if(VanishNoPacket.isVanished(fp.getName())) {			       										    				
+        						break;			 
+        					}
+        				} 
+        				catch(Exception e) {					
+        					e.printStackTrace();
+        				}
+        			}
+        			String playerignorelist = plugin.getMetadataString(fp, "MineverseChat.ignore", plugin);
+        			if(playerignorelist.length() > 0) {
+        				String curplayer = "";
+        				StringTokenizer st = new StringTokenizer(playerignorelist, ",");
+        				while(st.hasMoreTokens()) {
+        					curplayer = st.nextToken();
+        					if(curplayer.equalsIgnoreCase(event.getPlayer().getName())) {
+        						event.getPlayer().sendMessage(ChatColor.GOLD + fp.getDisplayName() + " is currently ignoring your tells.");
+        						event.setCancelled(true);
+        						return;
+        					}
+        				}
+        			}
+        			String echo = "";
+        			String send = "";
+        			String spy = "";
+        			if(plugin.getMetadata(fp, "MineverseChat.afk", plugin) == true) {
+        				p.sendMessage(ChatColor.GOLD + fp.getDisplayName() + " is currently afk and might be unable to chat at this time.");
+        			}
+        			if(plugin.getMetadata(p, "MineverseChat.filter", plugin)) {
+						format = cc.FilterChat(format);
+    				}
+        			if(p.hasPermission("mineversechat.color")) {
+						format = cc.FormatStringColor(format);
+		            }
+        			if(p.hasPermission("mineversechat.format")) {
+						format = cc.FormatString(format);
+		            }
+        			if(plugin.getConfig().getString("tellformatto").equalsIgnoreCase("Default")) {
+    					echo = "You message " + fp.getDisplayName() + ":" + ChatColor.valueOf(cc.tellColor.toUpperCase()) + format;	
+    				}
+    				else {
+    					echo = cc.FormatStringAll(plugin.getConfig().getString("tellformatto").replace("{playerto}", fp.getDisplayName()).replace("{playerfrom}", p.getDisplayName())) + format;
+    				}
+    				if(plugin.getConfig().getString("tellformatfrom").equalsIgnoreCase("Default")) {
+    					send = p.getDisplayName() + " messages you:"+ ChatColor.valueOf(cc.tellColor.toUpperCase()) + format;
+    				}
+    				else {
+    					send = cc.FormatStringAll(plugin.getConfig().getString("tellformatfrom").replace("{playerto}", fp.getDisplayName()).replace("{playerfrom}", p.getDisplayName())) + format;
+    				}
+    				if(plugin.getConfig().getString("tellformatspy").equalsIgnoreCase("Default")) {
+    					spy = p.getName() + " messages " + fp.getName() + ":" + ChatColor.valueOf(cc.tellColor.toUpperCase()) + format;    							
+    				}
+    				else {
+    					spy = cc.FormatStringAll(plugin.getConfig().getString("tellformatspy").replace("{playerto}", fp.getName()).replace("{playerfrom}", p.getName())) + format;
+    				}   	    				
+                    for(Player sp : fpl) {
+            			if(plugin.getMetadata(sp,"MineverseChat.spy", plugin)) {         					
+            				sp.sendMessage(spy);
+            			}
+            		}                    
+        			fp.sendMessage(send);
+        			p.sendMessage(echo);			
+        			fp.setMetadata("MineverseChat.reply", new FixedMetadataValue(plugin,event.getPlayer().getName()));
+					p.setMetadata("MineverseChat.reply", new FixedMetadataValue(plugin,fp.getName()));
+        			event.setCancelled(true);
+        			return;		
+        		}
+        		if(event.getMessage().startsWith("@" + fp.getName())) {
         			String format = event.getMessage().substring(fp.getDisplayName().length() + 1);            			
         			if(event.getMessage().length() <= fp.getDisplayName().length() + 1) {
         				p.sendMessage(ChatColor.RED + "You must include a message.");
@@ -245,16 +321,16 @@ public class ChatListener implements Listener {
     					echo = "You message " + fp.getDisplayName() + ":" + ChatColor.valueOf(cc.tellColor.toUpperCase()) + format;	
     				}
     				else {
-    					echo = cc.FormatStringAll(plugin.getConfig().getString("tellformatto").replace("{playerto}", fp.getName()).replace("{playerfrom}", p.getName())) + format;
+    					echo = cc.FormatStringAll(plugin.getConfig().getString("tellformatto").replace("{playerto}", fp.getDisplayName()).replace("{playerfrom}", p.getDisplayName())) + format;
     				}
     				if(plugin.getConfig().getString("tellformatfrom").equalsIgnoreCase("Default")) {
     					send = p.getDisplayName() + " messages you:"+ ChatColor.valueOf(cc.tellColor.toUpperCase()) + format;
     				}
     				else {
-    					send = cc.FormatStringAll(plugin.getConfig().getString("tellformatfrom").replace("{playerto}", fp.getName()).replace("{playerfrom}", p.getName())) + format;
+    					send = cc.FormatStringAll(plugin.getConfig().getString("tellformatfrom").replace("{playerto}", fp.getDisplayName()).replace("{playerfrom}", p.getDisplayName())) + format;
     				}
     				if(plugin.getConfig().getString("tellformatspy").equalsIgnoreCase("Default")) {
-    					spy = p.getDisplayName() + " messages " + fp.getDisplayName() + ":" + ChatColor.valueOf(cc.tellColor.toUpperCase()) + format;    							
+    					spy = p.getName() + " messages " + fp.getName() + ":" + ChatColor.valueOf(cc.tellColor.toUpperCase()) + format;    							
     				}
     				else {
     					spy = cc.FormatStringAll(plugin.getConfig().getString("tellformatspy").replace("{playerto}", fp.getName()).replace("{playerfrom}", p.getName())) + format;
@@ -318,9 +394,9 @@ public class ChatListener implements Listener {
         int chCooldown = 0;
         String curColor = "";
         String Channelformat;
-        Channelformat = plugin.getMetadataString(p, "format", plugin);
+        Channelformat = plugin.getMetadataString(p, "format", plugin).replace("{displayname}", p.getDisplayName());
         String Bungeeformat;
-        Bungeeformat = plugin.getMetadataString(p, "bungeeformat", plugin);
+        Bungeeformat = plugin.getMetadataString(p, "bungeeformat", plugin).replace("{displayname}", p.getDisplayName());
   
         for(ChatChannel ci : cc.getChannelsInfo()) {
             if(curChannel.equalsIgnoreCase(ci.getName())) {
@@ -443,14 +519,14 @@ public class ChatListener implements Listener {
             			catch(Exception ex) {
     						ex.printStackTrace();
     					}  
-                	}  
+                	} 
                 	if(plugin.getConfig().getConfigurationSection("channels." + curChannel).getString("format").equalsIgnoreCase("Default")) {
-                		Channelformat = ChatColor.valueOf(ci.getColor().toUpperCase()) + "[" + curChannel + "] " + prefix + "%s" + ChatColor.valueOf(ci.getColor().toUpperCase()) + ":" + ChatColor.valueOf(ci.getChatColor().toUpperCase());
+                		Channelformat = ChatColor.valueOf(ci.getColor().toUpperCase()) + "[" + curChannel + "] " + prefix + p.getName() + ChatColor.valueOf(ci.getColor().toUpperCase()) + ":" + ChatColor.valueOf(ci.getChatColor().toUpperCase());
                 		Bungeeformat = ChatColor.valueOf(ci.getColor().toUpperCase()) + p.getServer().getServerName() + " [" + curChannel + "] " + prefix + p.getName() + ChatColor.valueOf(ci.getColor().toUpperCase()) + ":" + ChatColor.valueOf(ci.getChatColor().toUpperCase());
                 	}
                 	else {
-                		Channelformat = cc.FormatStringAll(plugin.getConfig().getConfigurationSection("channels." + curChannel).getString("format").replace("{town}", town).replace("{nation}", nation).replace("{name}", "%s").replace("{townytitle}", ttitle).replace("{prefix}", prefix).replace("{suffix}", suffix).replace("{faction}", faction).replace("{factionstitle}", ftitle).replace("{servername}", p.getServer().getServerName()).replace("{pretown}", ptown).replace("{prenation}", pnation).replace("{group}", group).replace("{groupprefix}", groupprefix).replace("{groupsuffix}", groupsuffix));
-                		Bungeeformat = cc.FormatStringAll(plugin.getConfig().getConfigurationSection("channels." + curChannel).getString("format").replace("{town}", town).replace("{nation}", nation).replace("{name}", p.getName()).replace("{townytitle}", ttitle).replace("{prefix}", prefix).replace("{suffix}", suffix).replace("{faction}", faction).replace("{factionstitle}", ftitle).replace("{servername}", p.getServer().getServerName()).replace("{pretown}", ptown).replace("{prenation}", pnation).replace("{group}", group).replace("{groupprefix}", groupprefix).replace("{groupsuffix}", groupsuffix));            	
+                		Channelformat = cc.FormatStringAll(plugin.getConfig().getConfigurationSection("channels." + curChannel).getString("format").replace("{town}", town).replace("{nation}", nation).replace("{name}", p.getName()).replace("{townytitle}", ttitle).replace("{prefix}", prefix).replace("{suffix}", suffix).replace("{faction}", faction).replace("{factionstitle}", ftitle).replace("{servername}", p.getServer().getServerName()).replace("{pretown}", ptown).replace("{prenation}", pnation).replace("{group}", group).replace("{groupprefix}", groupprefix).replace("{groupsuffix}", groupsuffix).replace("{displayname}", p.getDisplayName()));
+                		Bungeeformat = cc.FormatStringAll(plugin.getConfig().getConfigurationSection("channels." + curChannel).getString("format").replace("{town}", town).replace("{nation}", nation).replace("{name}", p.getName()).replace("{townytitle}", ttitle).replace("{prefix}", prefix).replace("{suffix}", suffix).replace("{faction}", faction).replace("{factionstitle}", ftitle).replace("{servername}", p.getServer().getServerName()).replace("{pretown}", ptown).replace("{prenation}", pnation).replace("{group}", group).replace("{groupprefix}", groupprefix).replace("{groupsuffix}", groupsuffix).replace("{displayname}", p.getDisplayName()));          	
                 		if(plugin.getConfig().getBoolean("formatcleaner", false)) {
                 			Channelformat = Channelformat.replace("[]", " ");
                 			Bungeeformat = Bungeeformat.replace("[]", " ");
@@ -544,11 +620,10 @@ public class ChatListener implements Listener {
             }
             else {
             	event.setMessage(ChatColor.valueOf(curColor) + evMessage);
-            }
+            }            
             p.setMetadata("MineverseChat.quickchat", new FixedMetadataValue(plugin, false));
-            event.setFormat(Channelformat + "%s");
+            event.setFormat(Channelformat + event.getMessage());
             if(bungee) {                   
-            	event.setFormat(Bungeeformat.replace(p.getName(), "%s") + "%s");
                 ByteArrayOutputStream byteOutStream=new ByteArrayOutputStream();
             	DataOutputStream out=new DataOutputStream(byteOutStream);
                 try {         
