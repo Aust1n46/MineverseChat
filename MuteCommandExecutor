@@ -1,4 +1,5 @@
 package mineverse.Aust1n46.chat.command;
+package mineverse.Aust1n46.chat.command;
 
 import java.util.logging.Logger;
 import mineverse.Aust1n46.chat.ChatChannel;
