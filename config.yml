@@ -195,6 +195,7 @@ broadcast:
 # {prenation} : nation formatted with the towny nation colors
 # {townytitle} : towny player title
 # {name} : player name
+# {displayname} : player name or nickname if they have one
 # {prefix} : player prefix and color
 # {suffix} : player suffix and color
 # {group} : player group name
