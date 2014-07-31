@@ -55,7 +55,7 @@ public class ChatListener implements Listener {
         	p.sendMessage(ChatColor.GOLD + "You are no longer AFK.");
         	Player pla[] = plugin.getServer().getOnlinePlayers();
         	if(plugin.getConfig().getBoolean("broadcastafk")) {
-        		for (Player player : pla) {
+        		for(Player player : pla) {
         			if(p.getName() != player.getName()) {
         				player.sendMessage(ChatColor.GOLD + p.getName() + " is no longer AFK.");
         			}
@@ -196,7 +196,7 @@ public class ChatListener implements Listener {
         if(event.getMessage().startsWith("@")) {
         	for(Player fp : fpl) {
         		if(event.getMessage().startsWith("@" + fp.getDisplayName().replace("§r", ""))) {
-        			String format = event.getMessage().substring(fp.getDisplayName().length() -1);            			
+        			String format = event.getMessage().substring(fp.getDisplayName().length() - 1);            			
         			if(event.getMessage().length() <= fp.getDisplayName().length()) {
         				p.sendMessage(ChatColor.RED + "You must include a message.");
         				event.setCancelled(true);
@@ -205,7 +205,7 @@ public class ChatListener implements Listener {
         			PluginManager pluginManager = plugin.getServer().getPluginManager();
         			if(pluginManager.isPluginEnabled("VanishNoPacket")) {
         				try {
-        					if(VanishNoPacket.isVanished(fp.getName())) {			       										    				
+        					if((VanishNoPacket.isVanished(fp.getName()) && plugin.getConfig().getBoolean("vanishsupport"))) {			       										    				
         						break;			 
         					}
         				} 
@@ -272,7 +272,7 @@ public class ChatListener implements Listener {
         			return;		
         		}
         		if(event.getMessage().startsWith("@" + fp.getName())) {
-        			String format = event.getMessage().substring(fp.getDisplayName().length() + 1);            			
+        			String format = event.getMessage().substring(fp.getName().length() + 1);            			
         			if(event.getMessage().length() <= fp.getDisplayName().length() + 1) {
         				p.sendMessage(ChatColor.RED + "You must include a message.");
         				event.setCancelled(true);
@@ -281,7 +281,7 @@ public class ChatListener implements Listener {
         			PluginManager pluginManager = plugin.getServer().getPluginManager();
         			if(pluginManager.isPluginEnabled("VanishNoPacket")) {
         				try {
-        					if(VanishNoPacket.isVanished(fp.getName())) {			       										    				
+        					if((VanishNoPacket.isVanished(fp.getName()) && plugin.getConfig().getBoolean("vanishsupport"))) {			       										    				
         						break;			 
         					}
         				} 
@@ -394,9 +394,9 @@ public class ChatListener implements Listener {
         int chCooldown = 0;
         String curColor = "";
         String Channelformat;
-        Channelformat = plugin.getMetadataString(p, "format", plugin).replace("{displayname}", p.getDisplayName());
+        Channelformat = plugin.getMetadataString(p, "format", plugin);
         String Bungeeformat;
-        Bungeeformat = plugin.getMetadataString(p, "bungeeformat", plugin).replace("{displayname}", p.getDisplayName());
+        Bungeeformat = plugin.getMetadataString(p, "bungeeformat", plugin);
   
         for(ChatChannel ci : cc.getChannelsInfo()) {
             if(curChannel.equalsIgnoreCase(ci.getName())) {
@@ -476,6 +476,7 @@ public class ChatListener implements Listener {
         			String nation = "";
         			String ttitle = "";
         			String ftitle = "";
+        			String role = "";
         			String faction = "";
         			String ptown = "";
         			String pnation = "";
@@ -509,9 +510,10 @@ public class ChatListener implements Listener {
                 	if(pluginManager.isPluginEnabled("Factions")) {
                 		try {
                 			UPlayer uplayer = UPlayer.get(p);
-                			if(uplayer.hasFaction()) {               				
-                				faction = uplayer.getFaction().getName();   
+                			if(uplayer.hasFaction()) {                    				                				
+                				role = uplayer.getRole().getPrefix();
                 			}
+                			faction = uplayer.getFaction().getName();
                 			if(uplayer.hasTitle()) {               				
                 				ftitle = uplayer.getTitle();
                 			}
@@ -521,12 +523,12 @@ public class ChatListener implements Listener {
     					}  
                 	} 
                 	if(plugin.getConfig().getConfigurationSection("channels." + curChannel).getString("format").equalsIgnoreCase("Default")) {
-                		Channelformat = ChatColor.valueOf(ci.getColor().toUpperCase()) + "[" + curChannel + "] " + prefix + p.getName() + ChatColor.valueOf(ci.getColor().toUpperCase()) + ":" + ChatColor.valueOf(ci.getChatColor().toUpperCase());
-                		Bungeeformat = ChatColor.valueOf(ci.getColor().toUpperCase()) + p.getServer().getServerName() + " [" + curChannel + "] " + prefix + p.getName() + ChatColor.valueOf(ci.getColor().toUpperCase()) + ":" + ChatColor.valueOf(ci.getChatColor().toUpperCase());
+                		Channelformat = ChatColor.valueOf(ci.getColor().toUpperCase()) + p.getServer().getServerName() + " [" + curChannel + "] " + prefix + "%s" + ChatColor.valueOf(ci.getColor().toUpperCase()) + ":" + ChatColor.valueOf(ci.getChatColor().toUpperCase());
+                		Bungeeformat = ChatColor.valueOf(ci.getColor().toUpperCase()) + p.getServer().getServerName() + " [" + curChannel + "] " + prefix + p.getDisplayName() + ChatColor.valueOf(ci.getColor().toUpperCase()) + ":" + ChatColor.valueOf(ci.getChatColor().toUpperCase());
                 	}
                 	else {
-                		Channelformat = cc.FormatStringAll(plugin.getConfig().getConfigurationSection("channels." + curChannel).getString("format").replace("{town}", town).replace("{nation}", nation).replace("{name}", p.getName()).replace("{townytitle}", ttitle).replace("{prefix}", prefix).replace("{suffix}", suffix).replace("{faction}", faction).replace("{factionstitle}", ftitle).replace("{servername}", p.getServer().getServerName()).replace("{pretown}", ptown).replace("{prenation}", pnation).replace("{group}", group).replace("{groupprefix}", groupprefix).replace("{groupsuffix}", groupsuffix).replace("{displayname}", p.getDisplayName()));
-                		Bungeeformat = cc.FormatStringAll(plugin.getConfig().getConfigurationSection("channels." + curChannel).getString("format").replace("{town}", town).replace("{nation}", nation).replace("{name}", p.getName()).replace("{townytitle}", ttitle).replace("{prefix}", prefix).replace("{suffix}", suffix).replace("{faction}", faction).replace("{factionstitle}", ftitle).replace("{servername}", p.getServer().getServerName()).replace("{pretown}", ptown).replace("{prenation}", pnation).replace("{group}", group).replace("{groupprefix}", groupprefix).replace("{groupsuffix}", groupsuffix).replace("{displayname}", p.getDisplayName()));          	
+                		Channelformat = cc.FormatStringAll(plugin.getConfig().getConfigurationSection("channels." + curChannel).getString("format").replace("{town}", town).replace("{nation}", nation).replace("{name}", "%s").replace("{townytitle}", ttitle).replace("{prefix}", prefix).replace("{suffix}", suffix).replace("{faction}", faction).replace("{factionstitle}", ftitle).replace("{servername}", p.getServer().getServerName()).replace("{pretown}", ptown).replace("{prenation}", pnation).replace("{group}", group).replace("{groupprefix}", groupprefix).replace("{groupsuffix}", groupsuffix).replace("{role}", role));
+                		Bungeeformat = cc.FormatStringAll(plugin.getConfig().getConfigurationSection("channels." + curChannel).getString("format").replace("{town}", town).replace("{nation}", nation).replace("{name}", p.getDisplayName()).replace("{townytitle}", ttitle).replace("{prefix}", prefix).replace("{suffix}", suffix).replace("{faction}", faction).replace("{factionstitle}", ftitle).replace("{servername}", p.getServer().getServerName()).replace("{pretown}", ptown).replace("{prenation}", pnation).replace("{group}", group).replace("{groupprefix}", groupprefix).replace("{groupsuffix}", groupsuffix).replace("{role}", role));          	
                 		if(plugin.getConfig().getBoolean("formatcleaner", false)) {
                 			Channelformat = Channelformat.replace("[]", " ");
                 			Bungeeformat = Bungeeformat.replace("[]", " ");
@@ -616,28 +618,18 @@ public class ChatListener implements Listener {
             	evMessage = cc.FormatString(evMessage);
             }                                
             if(!plugin.getMetadata(p, "MineverseChat.quickchat", plugin) || !p.hasMetadata("MineverseChat.quickchat")) {
-            	event.setMessage(ChatColor.valueOf(curColor) + " " + evMessage);
-            }
-            else {
-            	event.setMessage(ChatColor.valueOf(curColor) + evMessage);
-            }            
+            	evMessage = " " + evMessage;
+            }           
+            event.setMessage(ChatColor.valueOf(curColor) + evMessage);
             p.setMetadata("MineverseChat.quickchat", new FixedMetadataValue(plugin, false));
-            event.setFormat(Channelformat + event.getMessage());
-            if(bungee) {                   
+            event.setFormat(Channelformat + "%s");
+            if(bungee) {     
+            	event.setCancelled(true);
                 ByteArrayOutputStream byteOutStream=new ByteArrayOutputStream();
             	DataOutputStream out=new DataOutputStream(byteOutStream);
-                try {         
-                	out.writeUTF("Forward");
-                	out.writeUTF("ALL");
-                	out.writeUTF("Chat");
-                	ByteArrayOutputStream msgbytes = new ByteArrayOutputStream();
-                	DataOutputStream msgout = new DataOutputStream(msgbytes);
-                	msgout.writeUTF(Bungeeformat + evMessage+"\n"+curChannel);
-                	msgout.writeShort(123);
-                	out.writeShort(msgbytes.toByteArray().length);
-                	out.write(msgbytes.toByteArray());
-                	p.sendPluginMessage(plugin,"BungeeCord",byteOutStream.toByteArray());                	 
-                	msgout.close();
+                try {                 	
+                	out.writeUTF(Bungeeformat + evMessage+"\n"+curChannel);               	
+                	p.sendPluginMessage(plugin,"MineverseChat",byteOutStream.toByteArray());                	 
                 	out.close();
                 }
                 catch(Exception e) {
