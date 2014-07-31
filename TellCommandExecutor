@@ -139,11 +139,11 @@ public class TellCommandExecutor implements CommandExecutor {
     			                    bFoundRemove = true;			                        	
     			                }
     			                else {
-    			                	newignorelist += curplayer + "," ;   			                        				                        	
+    			                	newignorelist += curplayer + ",";   			                        				                        	
     			                }
     			            }  			                 
     			            if(newignorelist.length() > 0) {	                   
-    			            	newignorelist = newignorelist.substring(0, newignorelist.length()-1);
+    			            	newignorelist = newignorelist.substring(0, newignorelist.length() - 1);
     			            }
     			            player.setMetadata("MineverseChat.ignore", new FixedMetadataValue(plugin,newignorelist));
     					}				
@@ -184,7 +184,7 @@ public class TellCommandExecutor implements CommandExecutor {
     			}   
     			Player tp = null;
     			boolean nick = false;
-    			for(Player p : Bukkit.getOnlinePlayers()) {   				
+    			for(Player p : Bukkit.getOnlinePlayers()) {   	   				
     				if(p.getDisplayName().replace("§r", "").equals(args[0])) {  					
     					nick = true;
     					tp = p;
@@ -197,7 +197,7 @@ public class TellCommandExecutor implements CommandExecutor {
     			PluginManager pluginManager = plugin.getServer().getPluginManager();
     			if(pluginManager.isPluginEnabled("VanishNoPacket")) {
     				try {
-    					if(tp == null || VanishNoPacket.isVanished(tp.getName())) {			
+    					if(tp == null || (VanishNoPacket.isVanished(tp.getName()) && plugin.getConfig().getBoolean("vanishsupport"))) {			
     						if(player!=null) {
     							player.sendMessage(ChatColor.RED + "Player: " + ChatColor.GOLD + args[0] + ChatColor.RED + " is not online.");   					 
     						}					    				
@@ -208,6 +208,12 @@ public class TellCommandExecutor implements CommandExecutor {
     					e.printStackTrace();
     				}
     			}
+    			if(tp == null) {			
+					if(player != null) {
+						player.sendMessage(ChatColor.RED + "Player: " + ChatColor.GOLD + args[0] + ChatColor.RED + " is not online.");   					 
+					}					    				
+					return true; 				 
+				}
     			String playerignorelist = plugin.getMetadataString(tp, "MineverseChat.ignore", plugin);				 
     			if(playerignorelist.length() > 0) {	        
     				String curplayer = "";
@@ -307,7 +313,7 @@ public class TellCommandExecutor implements CommandExecutor {
     					PluginManager pluginManager = plugin.getServer().getPluginManager();
     	    			if(pluginManager.isPluginEnabled("VanishNoPacket")) {
     	    				try {
-								if(tp == null || VanishNoPacket.isVanished(tp.getName())) {
+								if(tp == null || (VanishNoPacket.isVanished(tp.getName()) && plugin.getConfig().getBoolean("vanishsupport"))) {
 									if(player != null) {
 										player.sendMessage(ChatColor.RED + reply + " has left the game.");
 										player.setMetadata("MineverseChat.reply", new FixedMetadataValue(plugin,""));
