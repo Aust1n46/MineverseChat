@@ -414,6 +414,34 @@ public class ConfigCommandExecutor implements CommandExecutor {
 									break;
         						} 
         					}   
+        					case "vanishsupport": {
+        						try {
+        							switch(args[1]) {
+										case "true": {
+											plugin.getConfig().set("vanishsupport", true);
+											player.sendMessage(ChatColor.GREEN + "vanishsupport: has been set to true");
+											plugin.saveConfig();
+											plugin.reloadConfig();
+											break;
+										}
+										case "false": {
+											plugin.getConfig().set("vanishsupport", false);
+											player.sendMessage(ChatColor.GREEN + "vanishsupport: has been set to false");
+											plugin.saveConfig();
+											plugin.reloadConfig();
+											break;
+										}
+										default: {
+											player.sendMessage(ChatColor.RED + "Invalid arguments, /edit vanishsupport [true/false]");
+											break;
+										}
+        							}
+        						}
+        						catch(Exception e) {
+        							player.sendMessage(ChatColor.GREEN + "vanishsupport: " + plugin.getConfig().getBoolean("vanishsupport"));
+        						}
+        						break;
+        					}
         					case "tellformatto": {
         						try {
 									String format = args[1] + " ";
@@ -1056,6 +1084,7 @@ public class ConfigCommandExecutor implements CommandExecutor {
         						player.sendMessage(ChatColor.GREEN + "/edit saveplayerdata [true/false]");
         						player.sendMessage(ChatColor.GREEN + "/edit saveinterval [saveinterval]");
         						player.sendMessage(ChatColor.GREEN + "/edit tellcolor [color]"); 
+        						player.sendMessage(ChatColor.GREEN + "/edit vanishsupport [true/false]");
         						player.sendMessage(ChatColor.GREEN + "/edit tellformatto [format]"); 
         						player.sendMessage(ChatColor.GREEN + "/edit tellformatfrom [format]"); 
         						player.sendMessage(ChatColor.GREEN + "/edit tellformatspy [format]"); 
@@ -1081,6 +1110,8 @@ public class ConfigCommandExecutor implements CommandExecutor {
         			}       			
         			return true;
         		}
+        		player.sendMessage(ChatColor.RED + "You do not have permission for this command.");
+        		return true;
         	}       	
         }
         return false;
