@@ -1,0 +1,70 @@
+package mineverse.Aust1n46.chat.bungee;
+
+import java.util.StringTokenizer;
+import java.util.regex.Pattern;
+
+public class Utils {
+	private MineverseChatBungee plugin;
+	
+	public Utils(MineverseChatBungee plugin) {
+		this.plugin = plugin;
+	}
+	
+	public String FilterChat(String msg) {
+        int t = 0;
+        for(String s : plugin.filters) {
+            t = 0;
+            String[] pparse = new String[2];
+            pparse[0] = " ";
+            pparse[1] = " ";
+            StringTokenizer st = new StringTokenizer(s, ",");
+            while(st.hasMoreTokens()) {
+                if(t < 2) {
+                    pparse[t++] = st.nextToken();
+                }
+            }
+            msg = msg.replaceAll("(?i)" + pparse[0], pparse[1]);          	
+        }
+        return msg;
+    }
+    
+    protected static Pattern chatColorPattern = Pattern.compile("(?i)&([0-9A-F])");
+    protected static Pattern chatMagicPattern = Pattern.compile("(?i)&([K])");
+    protected static Pattern chatBoldPattern = Pattern.compile("(?i)&([L])");
+    protected static Pattern chatStrikethroughPattern = Pattern.compile("(?i)&([M])");
+    protected static Pattern chatUnderlinePattern = Pattern.compile("(?i)&([N])");
+    protected static Pattern chatItalicPattern = Pattern.compile("(?i)&([O])");
+    protected static Pattern chatResetPattern = Pattern.compile("(?i)&([R])");
+
+    public String FormatStringColor(String tobeformatted) {
+        String allFormated = tobeformatted;
+        allFormated = chatColorPattern.matcher(allFormated).replaceAll("\u00A7$1");
+        allFormated = allFormated.replaceAll("%", "\\%");
+        return allFormated;
+    }
+    
+    public String FormatString(String tobeformatted) {
+        String allFormated = tobeformatted;      
+        allFormated = chatMagicPattern.matcher(allFormated).replaceAll("\u00A7$1");
+        allFormated = chatBoldPattern.matcher(allFormated).replaceAll("\u00A7$1");
+        allFormated = chatStrikethroughPattern.matcher(allFormated).replaceAll("\u00A7$1");
+        allFormated = chatUnderlinePattern.matcher(allFormated).replaceAll("\u00A7$1");
+        allFormated = chatItalicPattern.matcher(allFormated).replaceAll("\u00A7$1");
+        allFormated = chatResetPattern.matcher(allFormated).replaceAll("\u00A7$1");
+        allFormated = allFormated.replaceAll("%", "\\%");
+        return allFormated;
+    }
+    
+    public String FormatStringAll(String tobeformatted) {
+    	String allFormated = tobeformatted;      
+    	allFormated = chatColorPattern.matcher(allFormated).replaceAll("\u00A7$1");
+        allFormated = chatMagicPattern.matcher(allFormated).replaceAll("\u00A7$1");
+        allFormated = chatBoldPattern.matcher(allFormated).replaceAll("\u00A7$1");
+        allFormated = chatStrikethroughPattern.matcher(allFormated).replaceAll("\u00A7$1");
+        allFormated = chatUnderlinePattern.matcher(allFormated).replaceAll("\u00A7$1");
+        allFormated = chatItalicPattern.matcher(allFormated).replaceAll("\u00A7$1");
+        allFormated = chatResetPattern.matcher(allFormated).replaceAll("\u00A7$1");
+        allFormated = allFormated.replaceAll("%", "\\%");
+        return allFormated;
+    }
+}
