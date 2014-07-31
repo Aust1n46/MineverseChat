@@ -1,0 +1,95 @@
+package mineverse.Aust1n46.chat.bungee.command;
+
+import java.util.StringTokenizer;
+
+import mineverse.Aust1n46.chat.bungee.MineverseChatBungee;
+import mineverse.Aust1n46.chat.bungee.Utils;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.md_5.bungee.api.plugin.Command;
+
+public class Reply extends Command {
+	private MineverseChatBungee plugin;
+	private String alias;
+	
+	public Reply(MineverseChatBungee plugin, String alias) {
+		super(alias);	
+		this.plugin = plugin;
+		this.alias = alias;
+	}
+	
+	@Override
+	public void execute(CommandSender commandSender, String[] args) {
+		if(!(commandSender instanceof ProxiedPlayer)) {
+			return;
+		}
+		if(args.length == 0) {	
+			commandSender.sendMessage(new TextComponent(ChatColor.RED + "Invalid command: /" + alias + " [msg]"));
+			return;
+		} 		
+		if(plugin.reply.containsKey(commandSender.getName())) {	
+			ProxiedPlayer player = plugin.getProxy().getPlayer(plugin.reply.get(commandSender.getName()));
+			if(player != null) {
+				String playerignorelist = "";
+				if(plugin.ignore.containsKey(player.getName())) {
+					playerignorelist = plugin.ignore.get(player.getName());
+				}
+				if(playerignorelist.length() > 0) {	        
+					String curplayer = "";
+	                StringTokenizer st = new StringTokenizer(playerignorelist, ",");
+	                while(st.hasMoreTokens()) {                     		                        
+	                	curplayer=st.nextToken();
+	                    if(curplayer.equalsIgnoreCase(commandSender.getName())) {
+	                    	commandSender.sendMessage(new TextComponent(ChatColor.GOLD + player.getName() + " is currently ignoring your replies."));
+	                        return;                       	
+	                    }
+	                }		                   
+				} 		
+				String message = "";
+				String echo = "";
+				String send = "";
+				for(int x = 0; x < args.length; x ++) {
+					message += args[x] + " ";
+				}
+				Utils u = new Utils(plugin);
+				message = u.FilterChat(message);
+				if(commandSender.hasPermission("mineversechat.color")) {
+					message = u.FormatStringColor(message);
+	            }    					
+				if(commandSender.hasPermission("mineversechat.format")) {
+					message = u.FormatString(message);    					
+	            }  
+				if(plugin.tellformatto.equalsIgnoreCase("Default")) {
+					echo = "You message " + player.getName() + ": " + ChatColor.valueOf(plugin.tellcolor.toUpperCase());	
+				}
+				else {
+					echo = u.FormatStringAll(plugin.tellformatto.replace("{playerto}", player.getName()).replace("{playerfrom}", commandSender.getName())) + " ";
+				}
+				if(plugin.tellformatfrom.equalsIgnoreCase("Default")) {
+					send = commandSender.getName() + " messages you: "+ ChatColor.valueOf(plugin.tellcolor.toUpperCase());
+				}
+				else {
+					send = u.FormatStringAll(plugin.tellformatfrom.replace("{playerto}", player.getName()).replace("{playerfrom}", commandSender.getName())) + " ";
+				}
+				TextComponent techo = new TextComponent(echo);
+				TextComponent tmessage = new TextComponent(message);
+				tmessage.setColor(ChatColor.valueOf(plugin.tellcolor.toUpperCase()));
+				TextComponent tsend = new TextComponent(send);
+				techo.addExtra(tmessage);
+				tsend.addExtra(tmessage);
+				commandSender.sendMessage(techo);
+				player.sendMessage(tsend);
+				plugin.reply.put(player.getName(), commandSender.getName());
+				plugin.reply.put(commandSender.getName(), player.getName());
+				return;
+			}
+			commandSender.sendMessage(new TextComponent(ChatColor.RED + plugin.reply.get(commandSender.getName()) + " has left the game."));
+			plugin.reply.remove(commandSender.getName());
+			return;
+		}
+		commandSender.sendMessage(new TextComponent(ChatColor.RED + "You do not have anyone to reply to."));
+		return;
+	}
+}
