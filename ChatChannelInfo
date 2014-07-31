@@ -47,7 +47,7 @@ public class ChatChannelInfo {
         ConfigurationSection bs = plugin.getConfig().getConfigurationSection("broadcast");
         broadcastColor=bs.getString("color","white");
         broadcastPermissions=bs.getString("permissions","");
-        broadcastDisplayTag=bs.getString("displaytag","[Broadcast]");
+        broadcastDisplayTag=FormatStringAll(bs.getString("displaytag","[Broadcast]"));
         saveplayerdata = plugin.getConfig().getBoolean("saveplayerdata", true);     
         chatPrefix = false;     
         if(plugin.getConfig().getBoolean("chatPrefix", false)) {
