@@ -166,8 +166,8 @@ public class MineverseChat extends JavaPlugin implements PluginMessageListener {
         	log.info(String.format("[" + String.format(getConfig().getString("pluginname", "MineverseChat") + "]" + " - Registering Quickchat commands", getDescription().getName())));
         }
         log.info(String.format("[" + String.format(getConfig().getString("pluginname", "MineverseChat") + "]" + " - Establishing BungeeCord", getDescription().getName())));
-        Bukkit.getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
-        Bukkit.getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
+        Bukkit.getMessenger().registerOutgoingPluginChannel(this, "MineverseChat");
+        Bukkit.getMessenger().registerIncomingPluginChannel(this, "MineverseChat", this);
         if(pluginManager.isPluginEnabled("Towny")) {
         	log.info(String.format("[" + String.format(getConfig().getString("pluginname", "MineverseChat") + "]" + " - Enabling Towny Formatting", getDescription().getName())));
         }
@@ -256,40 +256,19 @@ public class MineverseChat extends JavaPlugin implements PluginMessageListener {
 
     @Override
     public void onPluginMessageReceived(String channel, Player player, byte[] message) {
-    	if(!channel.equals("BungeeCord")) {
+    	if(!channel.equals("MineverseChat")) {
             return;
-        }
-    	DataInputStream in = new DataInputStream(new ByteArrayInputStream(message));
-        try {
-            String subchannel = in.readUTF();
-            /*if(subchannel.equals("Message")) {
-            	short len = in.readShort();
-            	byte[] msgbytes = new byte[len];
-            	in.readFully(msgbytes);
-            	DataInputStream msgin = new DataInputStream(new ByteArrayInputStream(msgbytes));
-            	String[] chat = msgin.readUTF().split("\n");
-            	for(Player p:Bukkit.getOnlinePlayers()) {
-            		if(p.hasMetadata("listenchannel."+chat[1])) {
-            			if(this.getMetadata(p,"listenchannel."+chat[1],this)) {
-            				p.sendMessage(chat[0]);
-            			}
+        }    	
+        try {                              	
+            DataInputStream msgin = new DataInputStream(new ByteArrayInputStream(message));
+            String[] chat = msgin.readUTF().split("\n");
+            for(Player p:Bukkit.getOnlinePlayers()) {
+            	if(p.hasMetadata("listenchannel."+chat[1])) {
+            		if(this.getMetadata(p,"listenchannel."+chat[1],this)) {
+            			p.sendMessage(chat[0]);
             		}
             	}
-            }*/          
-            if(subchannel.equals("Chat")) {
-            	short len = in.readShort();
-            	byte[] msgbytes = new byte[len];
-            	in.readFully(msgbytes);
-            	DataInputStream msgin = new DataInputStream(new ByteArrayInputStream(msgbytes));
-            	String[] chat = msgin.readUTF().split("\n");
-            	for(Player p:Bukkit.getOnlinePlayers()) {
-            		if(p.hasMetadata("listenchannel."+chat[1])) {
-            			if(this.getMetadata(p,"listenchannel."+chat[1],this)) {
-            				p.sendMessage(chat[0]);
-            			}
-            		}
-            	}
-            }
+            }          
         }
         catch(Exception e) {
             e.printStackTrace();
