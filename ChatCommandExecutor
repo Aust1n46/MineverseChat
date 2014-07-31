@@ -178,6 +178,7 @@ public class ChatCommandExecutor implements CommandExecutor, Listener {
     			String nation = "";
     			String ttitle = "";
     			String ftitle = "";
+    			String role = "";
     			String faction = "";
     			String ptown = "";
     			String pnation = "";
@@ -211,9 +212,10 @@ public class ChatCommandExecutor implements CommandExecutor, Listener {
             	if(pluginManager.isPluginEnabled("Factions")) {
             		try {
             			UPlayer uplayer = UPlayer.get(player);
-            			if(uplayer.hasFaction()) {               				
-            				faction = uplayer.getFaction().getName();   
+            			if(uplayer.hasFaction()) {               				        				
+            				role = uplayer.getRole().getPrefix();
             			}
+            			faction = uplayer.getFaction().getName();  
             			if(uplayer.hasTitle()) {               				
             				ftitle = uplayer.getTitle();
             			}
@@ -223,12 +225,12 @@ public class ChatCommandExecutor implements CommandExecutor, Listener {
 					}  
             	}  
             	if(plugin.getConfig().getConfigurationSection("channels." + ci.getName()).getString("format").equalsIgnoreCase("Default")) {
-            		format = ChatColor.valueOf(ci.getColor().toUpperCase()) + "[" + ci.getName() + "] " + prefix + player.getName() + ChatColor.valueOf(ci.getColor().toUpperCase()) + ":" + ChatColor.valueOf(ci.getChatColor().toUpperCase());
-            		Bungeeformat = ChatColor.valueOf(ci.getColor().toUpperCase()) + player.getServer().getServerName() + " [" + ci.getName() + "] " + prefix + player.getName() + ChatColor.valueOf(ci.getColor().toUpperCase()) + ":" + ChatColor.valueOf(ci.getChatColor().toUpperCase());
+            		format = ChatColor.valueOf(ci.getColor().toUpperCase()) + player.getServer().getServerName() + " [" + ci.getName() + "] " + prefix + "%s" + ChatColor.valueOf(ci.getColor().toUpperCase()) + ":" + ChatColor.valueOf(ci.getChatColor().toUpperCase());
+            		Bungeeformat = ChatColor.valueOf(ci.getColor().toUpperCase()) + player.getServer().getServerName() + " [" + ci.getName() + "] " + prefix + player.getDisplayName() + ChatColor.valueOf(ci.getColor().toUpperCase()) + ":" + ChatColor.valueOf(ci.getChatColor().toUpperCase());
             	}
             	else {            		
-            		format = cc.FormatStringAll(plugin.getConfig().getConfigurationSection("channels." + ci.getName()).getString("format").replace("{town}", town).replace("{nation}", nation).replace("{name}", player.getName()).replace("{townytitle}", ttitle).replace("{prefix}", prefix).replace("{suffix}", suffix).replace("{faction}", faction).replace("{factionstitle}", ftitle).replace("{servername}", player.getServer().getServerName()).replace("{pretown}", ptown).replace("{prenation}", pnation).replace("{group}", group).replace("{groupprefix}", groupprefix).replace("{groupsuffix}", groupsuffix));
-            		Bungeeformat = cc.FormatStringAll(plugin.getConfig().getConfigurationSection("channels." + ci.getName()).getString("format").replace("{town}", town).replace("{nation}", nation).replace("{name}", player.getName()).replace("{townytitle}", ttitle).replace("{prefix}", prefix).replace("{suffix}", suffix).replace("{faction}", faction).replace("{factionstitle}", ftitle).replace("{servername}", player.getServer().getServerName()).replace("{pretown}", ptown).replace("{prenation}", pnation).replace("{group}", group).replace("{groupprefix}", groupprefix).replace("{groupsuffix}", groupsuffix));                	
+            		format = cc.FormatStringAll(plugin.getConfig().getConfigurationSection("channels." + ci.getName()).getString("format").replace("{town}", town).replace("{nation}", nation).replace("{name}", "%s").replace("{townytitle}", ttitle).replace("{prefix}", prefix).replace("{suffix}", suffix).replace("{faction}", faction).replace("{factionstitle}", ftitle).replace("{servername}", player.getServer().getServerName()).replace("{pretown}", ptown).replace("{prenation}", pnation).replace("{group}", group).replace("{groupprefix}", groupprefix).replace("{groupsuffix}", groupsuffix).replace("{role}", role));
+            		Bungeeformat = cc.FormatStringAll(plugin.getConfig().getConfigurationSection("channels." + ci.getName()).getString("format").replace("{town}", town).replace("{nation}", nation).replace("{name}", player.getDisplayName()).replace("{townytitle}", ttitle).replace("{prefix}", prefix).replace("{suffix}", suffix).replace("{faction}", faction).replace("{factionstitle}", ftitle).replace("{servername}", player.getServer().getServerName()).replace("{pretown}", ptown).replace("{prenation}", pnation).replace("{group}", group).replace("{groupprefix}", groupprefix).replace("{groupsuffix}", groupsuffix).replace("{role}", role));          	
             		if(plugin.getConfig().getBoolean("formatcleaner", false)) {
             			format = format.replace("[]", " ");
             			Bungeeformat = Bungeeformat.replace("[]", " ");
