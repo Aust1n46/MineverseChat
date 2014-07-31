@@ -159,6 +159,7 @@ saveplayerdata: true
 # saveinterval is in minutes
 saveinterval: 5
 tellcolor: white
+vanishsupport: true
 
 # {playerto} : player receivings name
 # {playerfrom} : player sendings name
@@ -194,8 +195,7 @@ broadcast:
 # {nation} : towny nation name
 # {prenation} : nation formatted with the towny nation colors
 # {townytitle} : towny player title
-# {name} : player name
-# {displayname} : player name or nickname if they have one
+# {name} : player name or nickname if they have one
 # {prefix} : player prefix and color
 # {suffix} : player suffix and color
 # {group} : player group name
@@ -203,6 +203,7 @@ broadcast:
 # {groupsuffix} : player group suffix
 # {faction} : factions name
 # {factionstitle} : factions player title and color
+# {role} : factions player role prefix
 # {servername} : name of the server in server.properties
 # use Default for the basic formatting
 channels:
