@@ -1,0 +1,141 @@
+package mineverse.Aust1n46.chat.bungee;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import mineverse.Aust1n46.chat.bungee.command.Ignore;
+import mineverse.Aust1n46.chat.bungee.command.Message;
+import mineverse.Aust1n46.chat.bungee.command.Reply;
+import net.md_5.bungee.api.config.ServerInfo;
+import net.md_5.bungee.api.connection.Server;
+import net.md_5.bungee.api.event.PluginMessageEvent;
+import net.md_5.bungee.api.plugin.Listener;
+import net.md_5.bungee.api.plugin.Plugin;
+import net.md_5.bungee.config.Configuration;
+import net.md_5.bungee.config.ConfigurationProvider;
+import net.md_5.bungee.config.YamlConfiguration;
+import net.md_5.bungee.event.EventHandler;
+
+public class MineverseChatBungee extends Plugin implements Listener {	
+	public Map<String, String> reply = new HashMap<String, String>();
+	public Map<String, String> ignore = new HashMap<String, String>();
+	public List<String> filters;
+	public String tellformatto;
+	public String tellformatfrom;
+	public String replyformatto;
+	public String replyformatfrom;
+	public String tellcolor;
+	public long LINELENGTH = 40;
+	Configuration bungeeconfig;
+	Configuration playerdata;
+	
+    @Override
+    public void onEnable() {
+    	if(!getDataFolder().exists()) {
+            getDataFolder().mkdir();
+    	}
+        File config = new File(getDataFolder(), "bungeeconfig.yml");
+        File data = new File(getDataFolder(), "BungeePlayerData.yml");
+        try {
+        	if(!config.exists()) {
+        		Files.copy(getResourceAsStream("bungeeconfig.yml"), config.toPath());			
+        	}     	
+			bungeeconfig = ConfigurationProvider.getProvider(YamlConfiguration.class).load(new File(getDataFolder(), "bungeeconfig.yml"));			
+        	if(!data.exists()) {
+        		Files.copy(getResourceAsStream("BungeePlayerData.yml"), data.toPath());	
+        	}     	
+        	playerdata = ConfigurationProvider.getProvider(YamlConfiguration.class).load(new File(getDataFolder(), "BungeePlayerData.yml"));			
+        }
+        catch(Exception e) {
+        	e.printStackTrace();
+        }
+        List<String> mapignore = playerdata.getStringList("ignore");
+        for(int a = 0; a < mapignore.size(); a ++) {
+        	String[] keys = mapignore.get(a).split(",");
+        	if(!mapignore.get(a).endsWith(",")) {     		
+        		this.ignore.put(keys[0], keys[1]);
+        	}
+        	else {
+        		this.ignore.put(keys[0], "");
+        	}
+        }
+        this.filters = bungeeconfig.getStringList("filters");
+        this.tellformatto = bungeeconfig.getString("tellformatto");
+        this.tellformatfrom = bungeeconfig.getString("tellformatfrom");
+        this.replyformatto = bungeeconfig.getString("replyformatto");
+        this.replyformatfrom = bungeeconfig.getString("replyformatfrom");
+        this.tellcolor = bungeeconfig.getString("tellcolor");
+        getProxy().registerChannel("MineverseChat");
+        getProxy().getPluginManager().registerListener(this, this);
+    	getProxy().getPluginManager().registerCommand(this, new Message(this, "message"));
+    	getProxy().getPluginManager().registerCommand(this, new Message(this, "msg"));
+    	getProxy().getPluginManager().registerCommand(this, new Message(this, "pm"));
+    	getProxy().getPluginManager().registerCommand(this, new Message(this, "tell"));
+    	getProxy().getPluginManager().registerCommand(this, new Message(this, "whisper"));
+    	getProxy().getPluginManager().registerCommand(this, new Message(this, "w"));
+    	getProxy().getPluginManager().registerCommand(this, new Reply(this, "reply"));
+    	getProxy().getPluginManager().registerCommand(this, new Reply(this, "r"));
+    	getProxy().getPluginManager().registerCommand(this, new Ignore(this, "ignore"));
+    }
+    
+	@Override
+    public void onDisable() {
+    	List<String> mapignore = new ArrayList<String>(this.ignore.keySet());
+    	for(int a = 0; a < mapignore.size(); a ++) {
+    		mapignore.set(a, mapignore.get(a) + "," + this.ignore.get(mapignore.get(a)));
+    	}
+    	playerdata.set("ignore", mapignore);
+    	try {
+			ConfigurationProvider.getProvider(YamlConfiguration.class).save(playerdata, new File(getDataFolder(), "BungeePlayerData.yml"));
+		} 
+    	catch(Exception e) {			
+			e.printStackTrace();
+		}
+    }
+	
+	@EventHandler
+    public void onPluginMessage(PluginMessageEvent ev) {		
+        if(!ev.getTag().equals("MineverseChat")) {
+            return;
+        }  
+        if(!(ev.getSender() instanceof Server)) {
+            return;
+        }
+        ByteArrayInputStream stream = new ByteArrayInputStream(ev.getData());
+        DataInputStream in = new DataInputStream(stream);
+        try {
+        	String message = in.readUTF();
+			for(String send : getProxy().getServers().keySet()) {
+				sendMessage(message, getProxy().getServers().get(send));
+			}
+		} 
+        catch(Exception e) {			
+			e.printStackTrace();
+		}
+    }
+	
+	public void sendMessage(String message, ServerInfo server) {
+		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+	    DataOutputStream out = new DataOutputStream(stream);
+	    try {
+	    	out.writeUTF(message);
+		} 
+	    catch(Exception e) {				
+			e.printStackTrace();
+		} 	   
+	    if(server.getPlayers().size() > 0) {
+	    	server.sendData("MineverseChat", stream.toByteArray());
+	    }
+	}
+    
+    public long getLineLength() {
+        return LINELENGTH;
+    }
+}
