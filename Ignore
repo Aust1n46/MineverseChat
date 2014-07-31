@@ -1,0 +1,101 @@
+package mineverse.Aust1n46.chat.bungee.command;
+
+import java.util.StringTokenizer;
+import mineverse.Aust1n46.chat.bungee.MineverseChatBungee;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.md_5.bungee.api.plugin.Command;
+
+public class Ignore extends Command {
+	private MineverseChatBungee plugin;
+	private String alias;
+	
+	public Ignore(MineverseChatBungee plugin, String alias) {
+		super(alias);	
+		this.plugin = plugin;
+		this.alias = alias;
+	}
+	
+	@Override
+	public void execute(CommandSender commandSender, String[] args) {
+		if(!(commandSender instanceof ProxiedPlayer)) {
+			return;
+		}
+		if(args.length == 0) {	
+			commandSender.sendMessage(new TextComponent(ChatColor.RED + "Invalid command: /" + alias + " [player] or /ignore list"));
+			return;
+		} 	
+		if(args.length == 1) {
+			String newignorelist = "";   
+			String ignorelist = "";
+			if(plugin.ignore.containsKey(commandSender.getName())) {
+				ignorelist = plugin.ignore.get(commandSender.getName());
+			}
+			if(args[0].equalsIgnoreCase("list")) {   					  						 	   
+				commandSender.sendMessage(new TextComponent(ChatColor.GOLD + "You are currently ignoring these players:" + ChatColor.RED));
+				if(ignorelist.length() > 0) {
+					long linecount = plugin.getLineLength();
+					String curignores = "";
+					String nextpl = "";
+		            StringTokenizer st = new StringTokenizer(ignorelist, ",");			           
+		            while(st.hasMoreTokens()) {  			                        
+		            	nextpl = st.nextToken();	                    	
+		                if(curignores.length() + nextpl.length()> linecount) {
+		                	curignores += "\n" + nextpl;
+		                    linecount = linecount + plugin.getLineLength();	   			                    	
+		                }
+		                else {
+		                	curignores += ChatColor.RED + nextpl;
+		                }		                  
+		                curignores += ChatColor.WHITE+", ";
+		            } 
+					curignores = curignores.substring(0, curignores.length()-2);
+					commandSender.sendMessage(new TextComponent(curignores));
+				}	     					
+				return;
+			} 
+			if(args[0].length() > 0) { 
+				Boolean bFoundRemove = false;
+				if(ignorelist.length() > 0) {	        
+					String curplayer = "";
+		            StringTokenizer st = new StringTokenizer(ignorelist, ",");
+		            while(st.hasMoreTokens()) {   			                     
+		            	curplayer=st.nextToken();
+		                if(curplayer.equalsIgnoreCase(args[0])) {
+		                	commandSender.sendMessage(new TextComponent(ChatColor.GOLD + "You are no longer ignoring player: " + ChatColor.RED + args[0]));
+		                    bFoundRemove = true;			                        	
+		                }
+		                else {
+		                	newignorelist += curplayer + ",";   			                        				                        	
+		                }
+		            }  			                 
+		            if(newignorelist.length() > 0) {	                   
+		            	newignorelist = newignorelist.substring(0, newignorelist.length() - 1);
+		            }
+		            plugin.ignore.put(commandSender.getName(), newignorelist);
+				}				
+				if(!bFoundRemove) {
+					ProxiedPlayer tp = plugin.getProxy().getPlayer(args[0]);
+					if(tp == null) {						
+						commandSender.sendMessage(new TextComponent(ChatColor.RED + "Player: " + ChatColor.GOLD + args[0] + ChatColor.RED + " is not online.")); 						   						
+						return;
+					}	
+					if(tp.hasPermission("mineversechat.ignore.bypass")) {
+						commandSender.sendMessage(new TextComponent(ChatColor.RED + "You cannot ignore player: " + ChatColor.GOLD + tp.getName() + ChatColor.RED + "."));
+						return;
+					}
+					if(newignorelist.length() == 0) {
+						newignorelist += args[0];
+					}
+					else {
+						newignorelist += "," + args[0];
+					}
+					commandSender.sendMessage(new TextComponent(ChatColor.GOLD + "You are now ignoring player: " + ChatColor.RED + args[0]));    							 
+					plugin.ignore.put(commandSender.getName(), newignorelist);	 
+				}   					    								
+			}
+		}
+	}
+}
