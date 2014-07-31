@@ -71,7 +71,7 @@ public class LoginListener implements Listener {
 	void PlayerLeaving(Player pp) {   	
         customConfig = getCustomConfig();
         Player pl = pp;
-        ConfigurationSection cs = customConfig.getConfigurationSection("players." + pl.getPlayerListName());
+        ConfigurationSection cs = customConfig.getConfigurationSection("players." + pl.getName());
         if(cs == null) {
         Boolean nothingspecial = true;
         for(ChatChannel c : cc.getChannelsInfo()) {  
@@ -105,7 +105,7 @@ public class LoginListener implements Listener {
         	if(ps == null) {
                 cs = customConfig.createSection("players");
             }
-            cs = customConfig.createSection("players." + pl.getPlayerListName());
+            cs = customConfig.createSection("players." + pl.getName());
 
         }
         cs.set("default", plugin.getMetadataString(pl, "currentchannel", plugin));
@@ -147,12 +147,12 @@ public class LoginListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOW) 
     void onPlayerLogin(PlayerLoginEvent plog) {
-        String curChannel;
-        String pFormatted = "";
-        Player pl = plog.getPlayer();
-        pl.setMetadata("MineverseChat.filter", new FixedMetadataValue(plugin,true));  	 
-        pFormatted = cc.FormatPlayerName(MineverseChat.chat.getPlayerPrefix(pl), "%s", MineverseChat.chat.getPlayerSuffix(pl));
-        pl.setMetadata("chatnameformat", new FixedMetadataValue(plugin, pFormatted));
+    	Player pl = plog.getPlayer();
+    	if(plugin.getMetadata(pl, "MineverseChat.login", plugin)) {
+    		return;
+    	}
+        String curChannel;      
+        pl.setMetadata("MineverseChat.filter", new FixedMetadataValue(plugin, true));  	       
   
         for(ChatChannel c : cc.getChannelsInfo()) {
             if(c.hasPermission()) {            
@@ -167,7 +167,7 @@ public class LoginListener implements Listener {
                      
         if(cc.saveplayerdata) {
             customConfig = getCustomConfig();        
-            ConfigurationSection cs = customConfig.getConfigurationSection("players." + pl.getPlayerListName());
+            ConfigurationSection cs = customConfig.getConfigurationSection("players." + pl.getName());
             if(cs != null) {              
                 curChannel = cs.getString("default", defaultChannel);
                 pl.setMetadata("currentchannel", new FixedMetadataValue(plugin, curChannel));
@@ -236,7 +236,8 @@ public class LoginListener implements Listener {
         ChatChannel cf = cc.getChannelInfo(curChannel);
         curColor = cf.getColor();
         String format = ChatColor.valueOf(curColor.toUpperCase()) + "[" + curChannel + "]";
-        pl.setMetadata("format", new FixedMetadataValue(plugin, format));          
+        pl.setMetadata("format", new FixedMetadataValue(plugin, format));      
+        pl.setMetadata("MineverseChat.login", new FixedMetadataValue(plugin, true));
     }
 
     public void reloadCustomConfig() {       
